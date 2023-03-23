@@ -8,7 +8,7 @@ class Params:
     results_path: str = 'results/1st_order_2D_multi/'
     multi_motion: bool = True  # true when learning multiple motions together
     selected_primitives_ids: str = '0,1,2'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
-    workspace_dimensions: int = 2  # dimensionality of the data
+    manifold_dimensions: int = 2  # dimensionality of the data
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
 

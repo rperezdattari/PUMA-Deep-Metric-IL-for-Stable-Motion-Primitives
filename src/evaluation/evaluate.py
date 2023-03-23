@@ -15,8 +15,10 @@ class Evaluate():
 
         # Params file parameters
         self.fixed_point_iteration_thr = params.fixed_point_iteration_thr
-        self.dim_state = params.workspace_dimensions * params.dynamical_system_order
-        self.dim_workspace = params.workspace_dimensions
+        self.dim_state = params.manifold_dimensions * params.dynamical_system_order
+        if params.space == 'sphere':
+            self.dim_state += 1
+        self.dim_manifold = params.manifold_dimensions
         self.ignore_n_spurious = params.ignore_n_spurious
         self.multi_motion = params.multi_motion
         self.quanti_eval = params.quanti_eval
@@ -27,6 +29,7 @@ class Evaluate():
         self.density = params.density
         self.simulated_trajectory_length = params.simulated_trajectory_length
         self.dynamical_system_order = params.dynamical_system_order
+        self.space = params.space
 
         # Parameters data processor
         self.primitive_ids = np.array(data['demonstrations primitive id'])
@@ -40,6 +43,8 @@ class Evaluate():
         self.demonstrations_eval = data['demonstrations raw']
         self.x_min = np.array(data['x min'])
         self.x_max = np.array(data['x max'])
+        if self.space == 'sphere':
+            self.radius = data['radius']
 
         # Variables
         self.best_metric, self.best_n_spurious = 1e7, 1e7
@@ -52,21 +57,32 @@ class Evaluate():
         """
         Samples initial states from a grid in the state space
         """
-        # Create workspace grid [-1, 1] x [-1, 1] x ...
-        starting_points = np.linspace(-1, 1, self.density)
-        starting_points = [starting_points] * self.dim_workspace  # repeat points per dimension workspace
-        grid = np.meshgrid(*starting_points)
+        # If data in sphere, map sampled points to cartesian coordinates
+        if self.space == 'sphere':  # TODO: extend to higher dimensions
+            assert self.dim_manifold == 2, 'Implementation required for larger dimensions'
+            points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density**self.dim_manifold))* np.pi
+            grid_x = self.radius * np.sin(points_sphere[0]) * np.cos(points_sphere[1])
+            grid_y = self.radius * np.sin(points_sphere[0]) * np.sin(points_sphere[1])
+            grid_z = self.radius * np.cos(points_sphere[0])
+            grid = [grid_x, grid_y, grid_z]
+        else:
+            # Create workspace grid [-1, 1] x [-1, 1] x ...
+            starting_points = np.linspace(-1, 1, self.density)
+
+            starting_points = [starting_points] * self.dim_manifold  # repeat points per dimension workspace
+            grid = np.meshgrid(*starting_points)
 
         # Transform grid into tensor that pytorch can use
         initial_positions_grid = torch.empty(0)
-        for i in range(self.dim_workspace):
+        for i in range(self.dim_state):  # TODO: used to be dim_manifold
             initial_positions_grid = torch.cat([initial_positions_grid,
                                                 torch.from_numpy(grid[i].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_grid = initial_positions_grid.cuda()
 
         # Get initial derivatives and append to initial states (for second order systems)
-        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], self.dim_state - self.dim_workspace]).cuda()
+        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], 0]).cuda()   # TODO: fix for order > 1
+        assert self.dynamical_system_order == 1, 'line above has been modified and no longer works with order > 1'
 
         # Get initial states
         initial_states_grid = torch.cat([initial_positions_grid, initial_derivatives_grid], dim=1)
@@ -81,14 +97,15 @@ class Evaluate():
 
         # Get initial positions
         initial_positions_demos = torch.empty(0)
-        for i in range(self.dim_workspace):
+        for i in range(self.dim_state):  # TODO: used to be dim_manifold
             initial_positions_demos = torch.cat([initial_positions_demos,
                                                  torch.from_numpy(demos[:, 0, i, 0].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_demos = initial_positions_demos.cuda()
 
         # Get initial derivatives and append to initial states (second order systems)
-        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], self.dim_state - self.dim_workspace]).cuda()
+        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], 0]).cuda()  # TODO: fix for order > 1
+        assert self.dynamical_system_order == 1, 'line above has been modified and no longer works with order > 1'
 
         # Get initial states
         initial_states_demos = torch.cat([initial_positions_demos, initial_derivatives_demos], dim=1)
@@ -109,7 +126,7 @@ class Evaluate():
         n_trajectories_primitive = self.demonstrations_train[self.primitive_ids == primitive_id].shape[0]
 
         # Get primitive number to feed model
-        primitive_type = torch.ones(self.density ** self.dim_workspace + n_trajectories_primitive).cuda() * primitive_id
+        primitive_type = torch.ones(self.density ** self.dim_manifold + n_trajectories_primitive).cuda() * primitive_id
 
         # Combine states
         initial_states = torch.cat([initial_states_demos, initial_states_grid], dim=0)
@@ -135,7 +152,7 @@ class Evaluate():
         Computes velocity of initial states
         """
         # Get primitive number to feed model
-        primitive_type = torch.ones(self.density ** self.dim_workspace).cuda() * primitive_id
+        primitive_type = torch.ones(self.density ** self.dim_manifold).cuda() * primitive_id
 
         # Compute evaluation delta t
         delta_t_eval = np.mean(self.delta_t_eval)
@@ -146,11 +163,11 @@ class Evaluate():
             x_t = dynamical_system.transition(space='task', **kwargs)['desired state']
 
         # Denormalize states
-        x_init_denorm = denormalize_state(initial_states[:, :self.dim_workspace].cpu().detach().numpy(),
+        x_init_denorm = denormalize_state(initial_states[:, :self.dim_manifold].cpu().detach().numpy(),
                                           x_min=np.array(self.x_min),
                                           x_max=np.array(self.x_max))
 
-        x_t_denorm = denormalize_state(x_t[:, :self.dim_workspace].cpu().detach().numpy(),
+        x_t_denorm = denormalize_state(x_t[:, :self.dim_manifold].cpu().detach().numpy(),
                                        x_min=np.array(self.x_min),
                                        x_max=np.array(self.x_max))
 
@@ -189,7 +206,7 @@ class Evaluate():
         """
 
         # Denormalize and preprocess trajectories
-        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_workspace], self.x_min, self.x_max)
+        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_state], self.x_min, self.x_max)  # TODO: used to be dim_manifold
         demos = self.preprocess_demonstrations_eval(demonstrations_eval, visited_states.shape[1],
                                                     max_trajectory_length)
 
@@ -229,11 +246,11 @@ class Evaluate():
         """
 
         # Initialize padded demos
-        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_workspace])
+        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_state])  # TODO: used to be dim_manifold
 
         # Add zeros to each trajectory such that they all have the same length as the longest one
         for i in range(n_trajectories):
-            for j in range(self.dim_workspace):
+            for j in range(self.dim_state):  # TODO: used to be dim_manifold
                 demonstrations_eval_i_j = demonstrations_eval[i][j]
                 length_diff = max_trajectory_length - len(demonstrations_eval_i_j)
                 demonstrations_eval_i_j = np.append(demonstrations_eval_i_j, np.zeros(length_diff))
@@ -322,7 +339,7 @@ class Evaluate():
             sim_results = self.simulate_system(primitive_id)
 
             # Get last point trajectories grid
-            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_workspace], self.x_min, self.x_max)
+            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_state], self.x_min, self.x_max)  # TODO: used to be dim_manifold
 
             if self.quanti_eval:
                 metrics_acc, metrics_stab = self.compute_quanti_eval(sim_results, attractor, primitive_id)

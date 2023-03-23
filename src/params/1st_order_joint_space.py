@@ -9,7 +9,7 @@ class Params:
     results_path: str = 'results/1st_order_joint_space/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '1'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
-    workspace_dimensions: int = 6  # dimensionality of the data
+    manifold_dimensions: int = 6  # dimensionality of the data
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
 

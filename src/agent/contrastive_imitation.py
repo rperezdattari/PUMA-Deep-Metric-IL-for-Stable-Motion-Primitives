@@ -12,9 +12,12 @@ class ContrastiveImitation:
     """
     def __init__(self, data, params):
         # Params file parameters
-        self.dim_workspace = params.workspace_dimensions
+        self.dim_manifold = params.manifold_dimensions
         self.dynamical_system_order = params.dynamical_system_order
-        self.dim_state = self.dim_workspace * self.dynamical_system_order
+        self.dim_state = self.dim_manifold * self.dynamical_system_order
+        self.space = params.space
+        if self.space == 'sphere':
+            self.dim_state += 1
         self.imitation_window_size = params.imitation_window_size
         self.batch_size = params.batch_size
         self.save_path = params.results_path
@@ -34,10 +37,14 @@ class ContrastiveImitation:
         self.goals_tensor = torch.FloatTensor(data['goals training']).cuda()
         self.demonstrations_train = data['demonstrations train']
         self.n_demonstrations = data['n demonstrations']
-        self.min_vel = torch.from_numpy(data['vel min train'].reshape([1, self.dim_workspace])).float().cuda()
-        self.max_vel = torch.from_numpy(data['vel max train'].reshape([1, self.dim_workspace])).float().cuda()
-        min_acc = torch.from_numpy(data['acc min train'].reshape([1, self.dim_workspace])).float().cuda()
-        max_acc = torch.from_numpy(data['acc max train'].reshape([1, self.dim_workspace])).float().cuda()
+        self.min_vel = torch.from_numpy(data['vel min train'].reshape([1, self.dim_state])).float().cuda()  # TODO: used to be dim_manifold
+        self.max_vel = torch.from_numpy(data['vel max train'].reshape([1, self.dim_state])).float().cuda()  # TODO: used to be dim_manifold
+        min_acc = torch.from_numpy(data['acc min train'].reshape([1, self.dim_state])).float().cuda()  # TODO: used to be dim_manifold
+        max_acc = torch.from_numpy(data['acc max train'].reshape([1, self.dim_state])).float().cuda()  # TODO: used to be dim_manifold
+        if self.space == 'sphere':
+            self.radius = data['radius']
+        else:
+            self.radius = None
 
         # Dynamical-system-only params
         self.params_dynamical_system = {'saturate transition': params.saturate_out_of_boundaries_transitions,
@@ -84,6 +91,7 @@ class ContrastiveImitation:
 
         # Create dynamical system
         dynamical_system = DynamicalSystem(x_init=initial_states,
+                                           space=self.space,
                                            model=self.model,
                                            primitive_type=primitive_type,
                                            order=self.dynamical_system_order,
@@ -95,7 +103,8 @@ class ContrastiveImitation:
                                            dim_state=self.dim_state,
                                            delta_t=delta_t,
                                            x_min=self.params_dynamical_system['x min'],
-                                           x_max=self.params_dynamical_system['x max'])
+                                           x_max=self.params_dynamical_system['x max'],
+                                           radius=self.radius)
 
         return dynamical_system
 
@@ -115,7 +124,7 @@ class ContrastiveImitation:
             x_t_d = dynamical_system.transition()['desired state']
 
             # Compute and accumulate error
-            imitation_error_accumulated += self.mse_loss(x_t_d[:, :self.dim_workspace], state_sample[:, :self.dim_workspace, i + 1].cuda())
+            imitation_error_accumulated += self.mse_loss(x_t_d[:, :self.dim_manifold], state_sample[:, :self.dim_manifold, i + 1].cuda())
         imitation_error_accumulated = imitation_error_accumulated / (self.imitation_window_size - 1)
 
         return imitation_error_accumulated * self.imitation_loss_weight
@@ -164,15 +173,15 @@ class ContrastiveImitation:
         state_sample = torch.empty([self.batch_size, self.dim_state, self.imitation_window_size]).cuda()
 
         # Fill first elements of the state with position
-        state_sample[:, :self.dim_workspace, :] = position_sample[:, :, (self.dynamical_system_order - 1):]
+        state_sample[:, :self.dim_state, :] = position_sample[:, :, (self.dynamical_system_order - 1):]  # TODO: used to be dim_manifold
 
         # Fill rest of the elements with velocities for second order systems
         if self.dynamical_system_order == 2:
             velocity = (position_sample[:, :, 1:] - position_sample[:, :, :-1]) / self.delta_t
             velocity_norm = normalize_state(velocity,
-                                            x_min=self.min_vel.reshape(1, self.dim_workspace, 1),
-                                            x_max=self.max_vel.reshape(1, self.dim_workspace, 1))
-            state_sample[:, self.dim_workspace:, :] = velocity_norm
+                                            x_min=self.min_vel.reshape(1, self.dim_state, 1), # TODO: used to be dim_manifold
+                                            x_max=self.max_vel.reshape(1, self.dim_state, 1)) # TODO: used to be dim_manifold
+            state_sample[:, self.dim_state:, :] = velocity_norm  # TODO: used to be dim_manifold
 
         # Finally, get primitive ids of sampled batch (necessary when multi-motion learning)
         primitive_type_sample = self.primitive_ids[selected_demos]

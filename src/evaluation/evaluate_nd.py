@@ -22,7 +22,7 @@ class EvaluateND(Evaluate):
         # Get time simulated trajectories
         delta_t_eval = np.mean(self.delta_t_eval)
         time_simulations = np.repeat(np.arange(0, sim_results['visited states grid'].shape[0] * delta_t_eval, delta_t_eval).reshape(-1, 1),
-                                     self.density**self.dim_workspace, axis=1)
+                                     self.density**self.dim_manifold, axis=1)
 
         # Plot
         save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pdf'
@@ -51,7 +51,7 @@ class EvaluateND(Evaluate):
         plt.rcParams.update({'font.size': 20})
 
         # Create subplots
-        n_joints = self.dim_workspace
+        n_joints = self.dim_manifold
         fig, axs = plt.subplots(n_joints, figsize=(10, 25))
 
         # Add title of subplots

@@ -7,17 +7,18 @@ class DynamicalSystem():
     """
     Dynamical System that uses Neural Network trained with Contrastive Imitation
     """
-    def __init__(self, x_init, order, min_state_derivative, max_state_derivative, saturate_transition, primitive_type,
-                 model, dim_state, delta_t, x_min, x_max):
+    def __init__(self, x_init, space, order, min_state_derivative, max_state_derivative, saturate_transition, primitive_type,
+                 model, dim_state, delta_t, x_min, x_max, radius):
         # Initialize NN model
         self.model = model
 
         # Initialize parameters
+        self.space = space
         self.order = order
         self.saturate_transition = saturate_transition
         self.primitive_type = primitive_type
         self.dim_state = dim_state
-        self.dim_workspace = dim_state // order
+        self.dim_manifold = dim_state // order
         self.min_vel = min_state_derivative[0]
         self.max_vel = max_state_derivative[0]
         self.min_acc = min_state_derivative[1]
@@ -25,11 +26,24 @@ class DynamicalSystem():
         self.delta_t = delta_t
         self.x_min = np.array(x_min)
         self.x_max = np.array(x_max)
+        self.radius = radius
         self.batch_size = x_init.shape[0]
+
+        # Project points to sphere surface
+        if self.space == 'sphere':
+            x_init = self.map_points_to_sphere(x_init)
 
         # Init dynamical system state
         self.x_t_d = x_init
         self.hist_y_t = []
+
+    def map_points_to_sphere(self, x_t):
+        """
+        Projects points to sphere surface
+        """
+        norm = torch.linalg.norm(x_t, dim=1).reshape(-1, 1)
+        x_t = (self.radius / norm) * x_t
+        return x_t
 
     def map_to_velocity(self, y_t):
         """
@@ -61,6 +75,10 @@ class DynamicalSystem():
         # Integrate
         x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
 
+        # Project points to sphere surface
+        if self.space == 'sphere':
+            x_t_d = self.map_points_to_sphere(x_t_d)
+
         return x_t_d, vel_t_d
 
     def integrate_2nd_order(self, x_t, acc_t_d):
@@ -68,8 +86,8 @@ class DynamicalSystem():
         Saturates and integrates state derivative for second-order systems
         """
         # Separate state in position and velocity
-        pos_t = x_t[:, :self.dim_workspace]
-        vel_t = denormalize_state(x_t[:, self.dim_workspace:], self.min_vel, self.max_vel)
+        pos_t = x_t[:, :self.dim_manifold]
+        vel_t = denormalize_state(x_t[:, self.dim_manifold:], self.min_vel, self.max_vel)
 
         # Clip position and velocity (through the acceleration)
         if self.saturate_transition:

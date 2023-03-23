@@ -35,7 +35,7 @@ class Evaluate2DO2(Evaluate):
 
         # Get rainbow cmap
         cm = plt.get_cmap('gist_rainbow')
-        num_colors = self.density ** self.dim_workspace
+        num_colors = self.density ** self.dim_manifold
         ax.set_prop_cycle('color', [cm(1. * i / num_colors) for i in range(num_colors)])
 
         # Plot demonstrations (we need loop because they can have different lengths)

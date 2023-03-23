@@ -11,14 +11,17 @@ class DataPreprocessor:
         """
         self.trajectories_resample_length = params.trajectories_resample_length
         self.state_increment = params.state_increment
-        self.dim_workspace = params.workspace_dimensions
+        self.dim_manifold = params.manifold_dimensions
         self.dynamical_system_order = params.dynamical_system_order
-        self.dim_state = self.dim_workspace * self.dynamical_system_order
+        self.dim_state = self.dim_manifold * self.dynamical_system_order
+        if params.space == 'sphere':
+            self.dim_state += 1
         self.workspace_boundaries_type = params.workspace_boundaries_type
         self.workspace_boundaries = np.array(params.workspace_boundaries)
         self.eval_length = params.evaluation_samples_length
         self.dataset_name = params.dataset_name
         self.selected_primitives_id = params.selected_primitives_ids
+        self.space = params.space
 
         self.delta_t = 1  # this value is for learning, so it can be anything
         self.imitation_window_size = params.imitation_window_size  # window size used for imitation cost
@@ -81,6 +84,11 @@ class DataPreprocessor:
                           'eval indexes': eval_indexes,
                           'n demonstrations': n_trajectories}
 
+        if self.space == 'sphere':
+            # Get radius sphere
+            radius = self.get_radius_sphere(demonstrations_raw, x_min, x_max)
+            features_demos.update({'radius': radius})
+
         return features_demos
 
     def get_workspace_boundaries(self, demonstrations_raw):
@@ -113,6 +121,24 @@ class DataPreprocessor:
             raise NameError('Selected workspace boundaries type not valid. Try: from data, custom')
 
         return x_min, x_max
+
+    def get_radius_sphere(self, demonstrations_raw, x_min, x_max):
+        """
+        Computes sphere radius from demonstrations
+        """
+        same_radius_demo = []
+
+        for i in range(len(demonstrations_raw)):
+            demonstrations_i_norm = normalize_state(demonstrations_raw[i],
+                                                    x_min=x_min.reshape(self.dim_state, 1),
+                                                    x_max=x_max.reshape(self.dim_state, 1))
+            radius_points = np.linalg.norm(demonstrations_i_norm, axis=0)
+            same_radius_demo.append(np.all(np.abs(radius_points - radius_points[0]) < 1e-10))
+
+        same_radius = np.all(same_radius_demo)
+        assert same_radius, 'points in demonstrations have different radius!'
+
+        return np.mean(radius_points)
 
     def get_trajectories_length(self, demonstrations_raw, n_trajectories):
         """
@@ -207,7 +233,7 @@ class DataPreprocessor:
 
             # Create input for spline: demonstrations and corresponding phases
             spline_input = []
-            for i in range(self.dim_workspace):
+            for i in range(self.dim_state):  # TODO: used to be dim_manifold
                 spline_input.append(demo_norm[:, i])
             spline_input.append(curve_phases)
             spline_input.append(delta_phases)
@@ -223,7 +249,7 @@ class DataPreprocessor:
             for _ in range(self.imitation_window_size + (self.dynamical_system_order - 1)):
                 # Compute demo positions based on current phase value
                 spline_values = splev(u, spline_parameters)
-                position_window = spline_values[:self.dim_workspace]
+                position_window = spline_values[:self.dim_state]  # TODO: used to be dim_manifold
 
                 # Append position to window trajectory
                 window.append(position_window)
