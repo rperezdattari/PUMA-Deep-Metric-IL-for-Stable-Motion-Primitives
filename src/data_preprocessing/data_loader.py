@@ -1,8 +1,9 @@
-from datasets.dataset_keys import LASA, LAIR, optitrack, interpolation, joint_space
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space
 import os
 import pickle
 import numpy as np
 import scipy.io as sio
+import json
 
 
 def load_demonstrations(dataset_name, selected_primitives_ids):
@@ -41,6 +42,8 @@ def get_dataset_primitives_names(dataset_name):
     """
     if dataset_name == 'LASA':
         dataset_primitives_names = LASA
+    elif dataset_name == 'LASA_S2':
+        dataset_primitives_names = LASA_S2
     elif dataset_name == 'LAIR':
         dataset_primitives_names = LAIR
     elif dataset_name == 'optitrack':
@@ -79,6 +82,8 @@ def get_data_loader(dataset_name):
         data_loader = load_numpy_file
     elif dataset_name == 'joint_space':
         data_loader = load_from_dict
+    elif dataset_name == 'LASA_S2':
+        data_loader = load_LASA_S2
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -144,4 +149,28 @@ def load_from_dict(dataset_dir, demonstrations_names):
             dt.append(data['delta_t'])
             primitive_id.append(i)
 
+    return demos, primitive_id, dt
+
+
+def load_LASA_S2(dataset_path, primitives_names):
+    """
+    Load LASA S2 models
+    """
+    demos, primitive_id = [], []
+    for i in range(len(primitives_names)):
+        path = dataset_path + primitives_names[i] + '.txt'
+        # Read the data from the file
+        with open(path) as f:
+            data = f.read()
+
+        # Reconstruct the data as a dictionary
+        data = json.loads(data)
+
+        # Iterate through demonstrations
+        for j in range(len(data['xyz'])):
+            s = np.array(data['xyz'][j]).T
+            demos.append(s)
+            primitive_id.append(i)
+
+    dt = 1
     return demos, primitive_id, dt

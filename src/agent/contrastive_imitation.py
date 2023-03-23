@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from agent.neural_network import NeuralNetwork
-from agent.utils.ranking_losses import ContrastiveLoss, TripletLoss
+from agent.utils.ranking_losses import TripletLoss, TripletAngleLoss, TripletCosineLoss
 from agent.dynamical_system import DynamicalSystem
 from agent.utils.dynamical_system_operations import normalize_state
 
@@ -19,7 +19,6 @@ class ContrastiveImitation:
         self.batch_size = params.batch_size
         self.save_path = params.results_path
         self.multi_motion = params.multi_motion
-        self.stabilization_loss = params.stabilization_loss
         self.generalization_window_size = params.stabilization_window_size
         self.imitation_loss_weight = params.imitation_loss_weight
         self.stabilization_loss_weight = params.stabilization_loss_weight
@@ -51,20 +50,17 @@ class ContrastiveImitation:
 
         # Initialize Neural Network losses
         self.mse_loss = torch.nn.MSELoss()
-        self.triplet_loss = TripletLoss(margin=params.triplet_margin, swap=True)
-        self.contrastive_loss = ContrastiveLoss(margin=params.contrastive_margin)
+        #self.triplet_loss = TripletLoss(margin=params.triplet_margin)
+        self.triplet_loss = TripletAngleLoss(margin=params.triplet_margin)
+        #self.triplet_loss = TripletCosineLoss(margin=params.triplet_margin)
 
         # Initialize Neural Network
         self.model = NeuralNetwork(dim_state=self.dim_state,
                                    dynamical_system_order=self.dynamical_system_order,
                                    n_primitives=self.n_primitives,
                                    multi_motion=self.multi_motion,
-                                   latent_gain_lower_limit=params.latent_gain_lower_limit,
-                                   latent_gain_upper_limit=params.latent_gain_upper_limit,
-                                   latent_gain=params.latent_gain,
                                    latent_space_dim=params.latent_space_dim,
-                                   neurons_hidden_layers=params.neurons_hidden_layers,
-                                   adaptive_gains=params.adaptive_gains).cuda()
+                                   neurons_hidden_layers=params.neurons_hidden_layers).cuda()
 
         # Initialize optimizer
         self.optimizer = torch.optim.AdamW(self.model.parameters(),
@@ -116,7 +112,7 @@ class ContrastiveImitation:
 
         for i in range(self.imitation_window_size - 1):
             # Compute transition
-            x_t_d = dynamical_system.transition(space='task')['desired state']
+            x_t_d = dynamical_system.transition()['desired state']
 
             # Compute and accumulate error
             imitation_error_accumulated += self.mse_loss(x_t_d[:, :self.dim_workspace], state_sample[:, :self.dim_workspace, i + 1].cuda())
@@ -132,39 +128,19 @@ class ContrastiveImitation:
         dynamical_system_task = self.init_dynamical_system(initial_states=state_sample,
                                                            primitive_type=primitive_type_sample)
 
-        dynamical_system_latent = self.init_dynamical_system(initial_states=state_sample,
-                                                             primitive_type=primitive_type_sample)
-
         # Compute cost over trajectory
         contrastive_matching_cost = 0
-        batch_size = state_sample.shape[0]
         y_t_task = None
 
         for i in range(self.generalization_window_size):
             # Do transition
             y_t_task_prev = y_t_task
-            y_t_task = dynamical_system_task.transition(space='task')['latent state']
-            _, y_t_latent = dynamical_system_latent.transition_latent_system()
+            y_t_task = dynamical_system_task.transition()['latent state']
 
             if i > 0:  # we need at least one iteration to have a previous point to push the current one away from
                 # Transition matching cost
-                if self.stabilization_loss == 'contrastive':
-                    # Anchor
-                    anchor_samples = torch.cat((y_t_task, y_t_task))
-
-                    # Positive/Negative samples
-                    contrastive_samples = torch.cat((y_t_latent, y_t_task_prev))
-
-                    # Contrastive label
-                    contrastive_label_pos = torch.ones(batch_size).cuda()
-                    contrastive_label_neg = torch.zeros(batch_size).cuda()
-                    contrastive_label = torch.cat((contrastive_label_pos, contrastive_label_neg))
-
-                    # Compute cost
-                    contrastive_matching_cost += self.contrastive_loss(anchor_samples, contrastive_samples, contrastive_label)
-
-                elif self.stabilization_loss == 'triplet':
-                    contrastive_matching_cost += self.triplet_loss(y_t_task, y_t_latent, y_t_task_prev)
+                y_goal = self.model.get_goals_latent_space_batch(primitive_type_sample)
+                contrastive_matching_cost += self.triplet_loss(y_goal, y_t_task, y_t_task_prev)
         contrastive_matching_cost = contrastive_matching_cost / (self.generalization_window_size - 1)
 
         return contrastive_matching_cost * self.stabilization_loss_weight

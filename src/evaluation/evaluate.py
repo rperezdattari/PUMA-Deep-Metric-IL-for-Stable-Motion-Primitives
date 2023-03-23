@@ -116,7 +116,7 @@ class Evaluate():
 
         # Simulate trajectories
         dynamical_system = self.learner.init_dynamical_system(initial_states, primitive_type)
-        visited_states, _ = dynamical_system.simulate(self.simulated_trajectory_length, space=space, **kwargs)
+        visited_states = dynamical_system.simulate(self.simulated_trajectory_length, space=space, **kwargs)
 
         # Separate grid/demos states
         visited_states_demos = visited_states[:, :n_trajectories_primitive]
