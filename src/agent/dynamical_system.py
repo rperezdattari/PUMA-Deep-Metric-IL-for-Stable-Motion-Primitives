@@ -32,6 +32,10 @@ class DynamicalSystem():
         # Project points to sphere surface
         if self.space == 'sphere':
             x_init = self.map_points_to_sphere(x_init)
+        elif self.space == 'euclidean_sphere':
+            self.radius = 1  # TODO: fix this hardcoding
+            projected_points = self.map_points_to_sphere(x_init[:, 3:])
+            x_init = torch.concat([x_init[:, :3], projected_points], dim=1)  # pytorch doesn't like inplace operations
 
         # Init dynamical system state
         self.x_t_d = x_init
@@ -78,6 +82,9 @@ class DynamicalSystem():
         # Project points to sphere surface
         if self.space == 'sphere':
             x_t_d = self.map_points_to_sphere(x_t_d)
+        elif self.space == 'euclidean_sphere':
+            projected_points = self.map_points_to_sphere(x_t_d[:, 3:])
+            x_t_d = torch.concat([x_t_d[:, :3], projected_points], dim=1)  # pytorch doesn't like inplace operations
 
         return x_t_d, vel_t_d
 

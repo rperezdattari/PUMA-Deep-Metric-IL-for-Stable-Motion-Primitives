@@ -55,7 +55,7 @@ class EvaluateND(Evaluate):
 
         # Create subplots
         n_joints = self.dim_manifold
-        if self.space == 'sphere':
+        if self.space == 'sphere' or self.space == 'euclidean_sphere':
             n_joints += 1
 
         fig, axs = plt.subplots(n_joints, figsize=(10, 25))

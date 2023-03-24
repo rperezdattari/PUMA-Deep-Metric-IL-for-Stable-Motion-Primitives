@@ -3,7 +3,7 @@ import torch
 from evaluation.utils.saving import save_stats_txt, save_best_stats_txt, check_gpu
 from evaluation.utils.similarity_measures import get_RMSE, get_FD, get_DTWD
 from agent.utils.dynamical_system_operations import denormalize_state
-from data_preprocessing.data_loader import euler_to_quaternion_batch
+from scipy.spatial.transform import Rotation
 
 
 class Evaluate():
@@ -17,7 +17,7 @@ class Evaluate():
         # Params file parameters
         self.fixed_point_iteration_thr = params.fixed_point_iteration_thr
         self.dim_state = params.manifold_dimensions * params.dynamical_system_order
-        if params.space == 'sphere':
+        if params.space == 'sphere' or params.space == 'euclidean_sphere':
             self.dim_state += 1
         self.dim_manifold = params.manifold_dimensions
         self.ignore_n_spurious = params.ignore_n_spurious
@@ -67,10 +67,16 @@ class Evaluate():
                 grid_z = self.radius * np.cos(points_sphere[0])
                 grid = [grid_x, grid_y, grid_z]
             elif self.dim_manifold == 3:
-                points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density ** self.dim_manifold)) * np.pi
-                grid = euler_to_quaternion_batch(points_sphere)
+                points_sphere = np.random.uniform(low=-1, high=1, size=(self.density ** self.dim_manifold, self.dim_manifold)) * np.pi
+                rot = Rotation.from_euler('xyz', points_sphere)
+                grid = rot.as_quat().T
             else:
                 raise NameError('Dimension manifold too large, not implemented.')
+        elif self.space == 'euclidean_sphere':
+            points_sphere = np.random.uniform(low=-1, high=1, size=(self.density ** self.dim_manifold, self.dim_manifold))
+            rot = Rotation.from_euler('xyz', points_sphere[:, 3:] * np.pi)
+            quat = rot.as_quat()
+            grid = np.concatenate([points_sphere[:, :3], quat], axis=1).T
         else:
             # Create workspace grid [-1, 1] x [-1, 1] x ...
             starting_points = np.linspace(-1, 1, self.density)

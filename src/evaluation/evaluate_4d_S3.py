@@ -3,7 +3,6 @@ import pickle
 import plotly.graph_objects as go
 from agent.utils.dynamical_system_operations import denormalize_state
 from scipy.spatial.transform import Rotation
-import numpy as np
 
 
 class Evaluate4DS3(Evaluate):
@@ -45,8 +44,8 @@ class Evaluate4DS3(Evaluate):
         demonstrations_eval_eul = []
         for i in range(self.n_trajectories):
             rot = Rotation.from_quat(self.demonstrations_eval[i].T)
-            quat = rot.as_euler('xyz')
-            demonstrations_eval_eul.append(quat.T)
+            eul = rot.as_euler('xyz')
+            demonstrations_eval_eul.append(eul.T)
 
         # Plot random trajectories
         for i in range(visited_states_grid.shape[1]):
@@ -56,9 +55,9 @@ class Evaluate4DS3(Evaluate):
                 x=visited_states_grid_eul[:, i, 0],
                 y=visited_states_grid_eul[:, i, 1],
                 z=visited_states_grid_eul[:, i, 2],
-                marker=go.scatter3d.Marker(size=3, color='blue'),
+                marker=go.scatter3d.Marker(size=1, color='blue'),
                 line=dict(color='blue', width=10),
-                opacity=0.1,
+                opacity=0.3,
                 mode='markers'
             )
             plot_data.append(marker_data_executed)

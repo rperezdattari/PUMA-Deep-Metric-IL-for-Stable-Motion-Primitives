@@ -16,7 +16,7 @@ class ContrastiveImitation:
         self.dynamical_system_order = params.dynamical_system_order
         self.dim_state = self.dim_manifold * self.dynamical_system_order
         self.space = params.space
-        if self.space == 'sphere':
+        if self.space == 'sphere' or self.space == 'euclidean_sphere':
             self.dim_state += 1
         self.imitation_window_size = params.imitation_window_size
         self.batch_size = params.batch_size

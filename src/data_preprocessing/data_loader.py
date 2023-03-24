@@ -1,4 +1,4 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB, ABB_R3S3
 from scipy.spatial.transform import Rotation
 import os
 import pickle
@@ -57,6 +57,8 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = joint_space
     elif dataset_name == 'ABB':
         dataset_primitives_names = ABB
+    elif dataset_name == 'ABB_R3S3':
+        dataset_primitives_names = ABB_R3S3
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -93,6 +95,8 @@ def get_data_loader(dataset_name):
         data_loader = load_lieflows_S3
     elif dataset_name == 'ABB':
         data_loader = load_ABB
+    elif dataset_name == 'ABB_R3S3':
+        data_loader = load_ABB_S3R3
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -187,6 +191,33 @@ def load_ABB(dataset_dir, demonstrations_names):
 
     return demos, primitive_id, dt
 
+
+def load_ABB_S3R3(dataset_dir, demonstrations_names):
+    """
+    Loads demonstrations in dictionaries for ABB
+    """
+    demos, primitive_id, dt = [], [], []
+
+    # Iterate in each primitive (multi model learning)
+    for i in range(len(demonstrations_names)):
+        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
+
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
+            with open(filename, 'rb') as file:
+                data = pickle.load(file)
+            rot = Rotation.from_matrix(np.array(data['x_rot']))
+            eul = rot.as_euler('xyz') * 30
+            #plot_points_3d(eul)
+            rot = Rotation.from_euler('xyz', eul)
+            quat = rot.as_quat()
+            demo = np.concatenate([np.array(data['x_pos']), quat], axis=1).T
+            demos.append(demo)
+            dt.append(data['delta_t'])
+            primitive_id.append(i)
+
+    return demos, primitive_id, dt
 
 def load_LASA_S2(dataset_path, primitives_names):
     """

@@ -14,7 +14,7 @@ class DataPreprocessor:
         self.dim_manifold = params.manifold_dimensions
         self.dynamical_system_order = params.dynamical_system_order
         self.dim_state = self.dim_manifold * self.dynamical_system_order
-        if params.space == 'sphere':
+        if params.space == 'sphere' or params.space == 'euclidean_sphere':
             self.dim_state += 1
         self.workspace_boundaries_type = params.workspace_boundaries_type
         self.workspace_boundaries = np.array(params.workspace_boundaries)
