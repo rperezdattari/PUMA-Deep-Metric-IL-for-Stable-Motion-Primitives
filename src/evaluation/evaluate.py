@@ -3,6 +3,7 @@ import torch
 from evaluation.utils.saving import save_stats_txt, save_best_stats_txt, check_gpu
 from evaluation.utils.similarity_measures import get_RMSE, get_FD, get_DTWD
 from agent.utils.dynamical_system_operations import denormalize_state
+from data_preprocessing.data_loader import euler_to_quaternion_batch
 
 
 class Evaluate():
@@ -58,13 +59,18 @@ class Evaluate():
         Samples initial states from a grid in the state space
         """
         # If data in sphere, map sampled points to cartesian coordinates
-        if self.space == 'sphere':  # TODO: extend to higher dimensions
-            assert self.dim_manifold == 2, 'Implementation required for larger dimensions'
-            points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density**self.dim_manifold))* np.pi
-            grid_x = self.radius * np.sin(points_sphere[0]) * np.cos(points_sphere[1])
-            grid_y = self.radius * np.sin(points_sphere[0]) * np.sin(points_sphere[1])
-            grid_z = self.radius * np.cos(points_sphere[0])
-            grid = [grid_x, grid_y, grid_z]
+        if self.space == 'sphere':
+            if self.dim_manifold == 2:
+                points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density**self.dim_manifold)) * np.pi
+                grid_x = self.radius * np.sin(points_sphere[0]) * np.cos(points_sphere[1])
+                grid_y = self.radius * np.sin(points_sphere[0]) * np.sin(points_sphere[1])
+                grid_z = self.radius * np.cos(points_sphere[0])
+                grid = [grid_x, grid_y, grid_z]
+            elif self.dim_manifold == 3:
+                points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density ** self.dim_manifold)) * np.pi
+                grid = euler_to_quaternion_batch(points_sphere)
+            else:
+                raise NameError('Dimension manifold too large, not implemented.')
         else:
             # Create workspace grid [-1, 1] x [-1, 1] x ...
             starting_points = np.linspace(-1, 1, self.density)

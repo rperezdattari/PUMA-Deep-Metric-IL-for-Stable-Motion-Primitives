@@ -1,4 +1,5 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB
+from scipy.spatial.transform import Rotation
 import os
 import pickle
 import numpy as np
@@ -44,6 +45,8 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = LASA
     elif dataset_name == 'LASA_S2':
         dataset_primitives_names = LASA_S2
+    elif dataset_name == 'lieflows_robot':
+        dataset_primitives_names = lieflows
     elif dataset_name == 'LAIR':
         dataset_primitives_names = LAIR
     elif dataset_name == 'optitrack':
@@ -52,6 +55,8 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = interpolation
     elif dataset_name == 'joint_space':
         dataset_primitives_names = joint_space
+    elif dataset_name == 'ABB':
+        dataset_primitives_names = ABB
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -84,6 +89,10 @@ def get_data_loader(dataset_name):
         data_loader = load_from_dict
     elif dataset_name == 'LASA_S2':
         data_loader = load_LASA_S2
+    elif dataset_name == 'lieflows_robot':
+        data_loader = load_lieflows_S3
+    elif dataset_name == 'ABB':
+        data_loader = load_ABB
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -152,6 +161,33 @@ def load_from_dict(dataset_dir, demonstrations_names):
     return demos, primitive_id, dt
 
 
+def load_ABB(dataset_dir, demonstrations_names):
+    """
+    Loads demonstrations in dictionaries for ABB
+    """
+    demos, primitive_id, dt = [], [], []
+
+    # Iterate in each primitive (multi model learning)
+    for i in range(len(demonstrations_names)):
+        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
+
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
+            with open(filename, 'rb') as file:
+                data = pickle.load(file)
+            rot = Rotation.from_matrix(np.array(data['x_rot']))
+            eul = rot.as_euler('xyz') * 30
+            #plot_points_3d(eul)
+            rot = Rotation.from_euler('xyz', eul)
+            quat = rot.as_quat()
+            demos.append(quat.T)
+            dt.append(data['delta_t'])
+            primitive_id.append(i)
+
+    return demos, primitive_id, dt
+
+
 def load_LASA_S2(dataset_path, primitives_names):
     """
     Load LASA S2 models
@@ -174,3 +210,88 @@ def load_LASA_S2(dataset_path, primitives_names):
 
     dt = 1
     return demos, primitive_id, dt
+
+
+def load_lieflows_S3(dataset_dir, demonstrations_names):
+    """
+    Loads demonstrations in numpy file from lieflow
+    """
+    dt_value = 0.01
+    demos, primitive_id, dt = [], [], []
+    for i in range(len(demonstrations_names)):
+        demos_primitive_names = os.listdir(dataset_dir + demonstrations_names[i])
+
+        for demo_primitive_name in demos_primitive_names:
+            data = np.load(dataset_dir + demonstrations_names[i] + '/' + demo_primitive_name, allow_pickle=True)
+            for j in range(data.shape[0]):
+                if j == 10:  # TODO: remove, just too many demos
+                    break
+                euler_angles = data[j].T[3:]
+                quaternions = euler_to_quaternion_batch(euler_angles)
+                demos.append(quaternions)
+                primitive_id.append(i)
+                dt_demo = np.zeros(data[j].shape[0]) + dt_value
+                dt.append(dt_demo)
+    return demos, primitive_id, dt
+
+
+def euler_to_quaternion_batch(euler_angles):
+    """
+    Convert a batch of Euler angles to quaternions.
+
+    Parameters:
+        euler_angles (numpy.ndarray): Array of shape (3, N) containing the batch of Euler angles
+                                       [roll, pitch, yaw] in radians. N is the batch size.
+
+    Returns:
+        numpy.ndarray: Array of shape (4, N) containing the batch of quaternions [w, x, y, z].
+
+    By ChatGPT
+    """
+    roll, pitch, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
+    cy = np.cos(yaw * 0.5)
+    sy = np.sin(yaw * 0.5)
+    cp = np.cos(pitch * 0.5)
+    sp = np.sin(pitch * 0.5)
+    cr = np.cos(roll * 0.5)
+    sr = np.sin(roll * 0.5)
+
+    # Calculate quaternion elements
+    qw = cr * cp * cy + sr * sp * sy
+    qx = sr * cp * cy - cr * sp * sy
+    qy = cr * sp * cy + sr * cp * sy
+    qz = cr * cp * sy - sr * sp * cy
+
+    return np.array([qw, qx, qy, qz])
+
+
+def quaternion_to_euler(q):
+    """
+    Converts quaternions to Euler angles (in radians) in the ZYX convention.
+    Assumes the quaternions are normalized.
+    By ChatGPT
+    """
+    yaw = np.arctan2(2*(q[:, :, 1]*q[:, :, 2] + q[:, :, 0]*q[:, :, 3]), q[:, :, 0]**2 + q[:, :, 1]**2 - q[:, :, 2]**2 - q[:, :, 3]**2)
+    pitch = np.arcsin(2*(q[:, :, 0]*q[:, :, 2] - q[:, :, 1]*q[:, :, 3]))
+    roll = np.arctan2(2*(q[:, :, 0]*q[:, :, 1] + q[:, :, 2]*q[:, :, 3]), q[:, :, 0]**2 - q[:, :, 1]**2 - q[:, :, 2]**2 + q[:, :, 3]**2)
+    return np.stack([yaw, pitch, roll], axis=-1)
+
+
+import matplotlib.pyplot as plt
+def plot_points_3d(points):
+    """
+    Plots a batch of 3D points using matplotlib.
+
+    Parameters:
+        points (numpy.ndarray): Array of shape (batch_size, 3) containing the batch of 3D points.
+
+    Returns:
+        None.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2])
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()

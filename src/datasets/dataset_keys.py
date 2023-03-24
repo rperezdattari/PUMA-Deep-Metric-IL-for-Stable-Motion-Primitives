@@ -30,6 +30,7 @@ LASA = ['Angle',
         'WShape',
         'Zshape']
 
+# LASA on S2 manifold
 LASA_S2 = ['S2_Angle',
            'S2_Bump',
            'S2_CShape',
@@ -56,6 +57,9 @@ LASA_S2 = ['S2_Angle',
            'S2_WShape',
            'S2_Zshape']
 
+# Lieflows dataset
+lieflows = ['pouring']
+
 # LAIR dataset
 LAIR = ['e',
         'double_loop',
@@ -80,3 +84,6 @@ optitrack = ['hammer']
 # Joint space dataset
 joint_space = ['cleaning_1',
                'cleaning_2']
+
+# ABB
+ABB = ['test']
