@@ -15,7 +15,7 @@ params = Params(args.results_base_directory)
 params.results_path += params.selected_primitives_ids + '/'
 
 # Initialize training objects
-learner, evaluator, _ = initialize_framework(params, args.params)
+learner, evaluator, data = initialize_framework(params, args.params)
 
 # Start tensorboard writer
 log_name = args.params + '_' + params.selected_primitives_ids

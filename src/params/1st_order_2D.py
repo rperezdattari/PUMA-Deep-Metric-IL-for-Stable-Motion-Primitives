@@ -11,6 +11,7 @@ class Params:
     manifold_dimensions: int = 2  # dimensionality of the data
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
+    space: str = 'euclidean'  # data manifold shape
 
     """ Neural Network """
     latent_space_dim: int = 300  # dimensionality latent space
@@ -20,7 +21,7 @@ class Params:
     weight_decay: float = 0.0001  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 1  # imitation loss weight
+    imitation_loss_weight: int = 0  # imitation loss weight
     stabilization_loss_weight: int = 1  # stability loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size

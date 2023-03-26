@@ -219,6 +219,7 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
 
     return demos, primitive_id, dt
 
+
 def load_LASA_S2(dataset_path, primitives_names):
     """
     Load LASA S2 models

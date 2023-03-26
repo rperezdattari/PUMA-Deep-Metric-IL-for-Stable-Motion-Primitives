@@ -17,12 +17,12 @@ class Params:
     """ Neural Network """
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
-    batch_size: int = 250  # sampling batch size
+    batch_size: int = 300  # sampling batch size
     learning_rate: float = 0.0001  # AdamW learning rate
-    weight_decay: float = 0.0001  # AdamW weight decay
+    weight_decay: float = 0.0000  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 0  # imitation loss weight
+    imitation_loss_weight: int = 1  # imitation loss weight
     stabilization_loss_weight: int = 1  # stability loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size
@@ -31,7 +31,7 @@ class Params:
 
     """ Training """
     train: bool = True  # true when training
-    load_model: bool = False  # true to load previously trained model
+    load_model: bool = True  # true to load previously trained model
     max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
@@ -44,7 +44,7 @@ class Params:
                                                  [-1.0, 1.0],
                                                  [-1.0, 1.0]])  # list to provide boundaries when custom boundaries
     trajectories_resample_length: int = 2000  # amount of points resampled from splines
-    state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
+    state_increment: float = 0.5  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
     """ Evaluation """
     save_evaluation: bool = True  # true to save evaluation results
@@ -55,8 +55,8 @@ class Params:
     diffeo_quali_eval: bool = False  # qualitative evaluation of diffeomorphism mismatch
     ignore_n_spurious: bool = False  # when selecting best model, true to ignore amount of spurious attractors
     fixed_point_iteration_thr = 0.2  # distance threshold to consider that a point did not reach the goal
-    density: int = 3  # density^workspace_dimension = amount of points sampled from state space for evaluation
-    simulated_trajectory_length: int = 1100  # integration length for evaluation
+    density: int = 2  # density^workspace_dimension = amount of points sampled from state space for evaluation
+    simulated_trajectory_length: int = 3100  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
     show_plotly: bool = True  # show evaluation during training
 
