@@ -1,5 +1,6 @@
 from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB, ABB_R3S3
 from scipy.spatial.transform import Rotation
+from spatialmath import SO3, UnitQuaternion
 import os
 import pickle
 import numpy as np
@@ -207,12 +208,31 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
             filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
             with open(filename, 'rb') as file:
                 data = pickle.load(file)
-            rot = Rotation.from_matrix(np.array(data['x_rot']))
-            eul = rot.as_euler('xyz') * 30
+            #rot = Rotation.from_matrix(np.array(data['x_rot']))
+            #eul = rot.as_euler('xyz') * 30
             #plot_points_3d(eul)
-            rot = Rotation.from_euler('xyz', eul)
-            quat = rot.as_quat()
-            demo = np.concatenate([np.array(data['x_pos']), quat], axis=1).T
+            #rot = Rotation.from_euler('xyz', eul)
+            #quat = rot.as_quat()
+            prev_quat = None
+            quats = []
+            for numpy_rot_mat in data['x_rot']:
+                # Get quatenion array from data
+                quat = UnitQuaternion(SO3(numpy_rot_mat)).A
+
+                # Check if quaternion flip
+                if prev_quat is None:
+                    prev_quat = quat
+
+                dist_quats = np.linalg.norm(quat - prev_quat)
+
+                if dist_quats > 0.5:
+                    quat *= -1
+
+                quats.append(quat)
+                prev_quat = quat
+
+            #quat = [UnitQuaternion(SO3(numpy_rot_mat)).A for numpy_rot_mat in data['x_rot']]
+            demo = np.concatenate([np.array(data['x_pos']), np.array(quats)], axis=1).T
             demos.append(demo)
             dt.append(data['delta_t'])
             primitive_id.append(i)
