@@ -302,9 +302,11 @@ class ContrastiveImitation:
         losses_names.append('Boundary')
 
         # Sum losses
-        loss = 0
-        for i in range(len(loss_list)):
-            loss += loss_list[i]
+        #loss = 0
+        # for i in range(len(loss_list)):
+        #     loss += loss_list[i]
+        id = torch.FloatTensor(loss_list).argmax()
+        loss = loss_list[id]
 
         return loss, loss_list, losses_names
 

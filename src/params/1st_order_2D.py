@@ -21,7 +21,7 @@ class Params:
     weight_decay: float = 0.0001  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 0  # imitation loss weight
+    imitation_loss_weight: int = 1  # imitation loss weight
     stabilization_loss_weight: int = 1  # stability loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size

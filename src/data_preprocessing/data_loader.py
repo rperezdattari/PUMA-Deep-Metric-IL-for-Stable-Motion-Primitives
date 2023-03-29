@@ -228,11 +228,23 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
                 if dist_quats > 0.5:
                     quat *= -1
 
+                # Append quaternion to list
                 quats.append(quat)
                 prev_quat = quat
 
-            #quat = [UnitQuaternion(SO3(numpy_rot_mat)).A for numpy_rot_mat in data['x_rot']]
             demo = np.concatenate([np.array(data['x_pos']), np.array(quats)], axis=1).T
+
+            # Flip complete demo if goal is in the other hemisphere
+            if len(demos) < 1:
+                prev_quat_traj_end = np.array(quats)[-1]
+            else:
+                prev_quat_traj_end = demos[-1][3:, -1]
+
+            dist_end_trajs = np.linalg.norm(prev_quat_traj_end - np.array(quats)[-1])
+            if dist_end_trajs > 0.5:
+                demo[3:] *= -1
+
+            # Append demo to demo list
             demos.append(demo)
             dt.append(data['delta_t'])
             primitive_id.append(i)
