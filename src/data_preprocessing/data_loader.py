@@ -208,18 +208,14 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
             filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
             with open(filename, 'rb') as file:
                 data = pickle.load(file)
-            #rot = Rotation.from_matrix(np.array(data['x_rot']))
-            #eul = rot.as_euler('xyz') * 30
-            #plot_points_3d(eul)
-            #rot = Rotation.from_euler('xyz', eul)
-            #quat = rot.as_quat()
+
             prev_quat = None
             quats = []
             for numpy_rot_mat in data['x_rot']:
                 # Get quatenion array from data
                 quat = UnitQuaternion(SO3(numpy_rot_mat)).A
 
-                # Check if quaternion flip
+                # Check if quaternion flip, and flip if necessary
                 if prev_quat is None:
                     prev_quat = quat
 
@@ -232,17 +228,23 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
                 quats.append(quat)
                 prev_quat = quat
 
-            demo = np.concatenate([np.array(data['x_pos']), np.array(quats)], axis=1).T
+            # Check if quaternion trajectory starts from predefined initial hemisphere
+            quats = np.array(quats)
+            if quats[0, -1] > 0:  # if last element of initial angle positive
+                quats *= -1  # flip trajectory such that it starts from predefined initial hemisphere
 
-            # Flip complete demo if goal is in the other hemisphere
-            if len(demos) < 1:
-                prev_quat_traj_end = np.array(quats)[-1]
-            else:
-                prev_quat_traj_end = demos[-1][3:, -1]
+            # Create demo out of positions and quats
+            demo = np.concatenate([np.array(data['x_pos']), quats], axis=1).T
 
-            dist_end_trajs = np.linalg.norm(prev_quat_traj_end - np.array(quats)[-1])
-            if dist_end_trajs > 0.5:
-                demo[3:] *= -1
+            # # Flip complete demo if goal is in the other hemisphere
+            # if len(demos) < 1:
+            #     prev_quat_traj_end = np.array(quats)[-1]
+            # else:
+            #     prev_quat_traj_end = demos[-1][3:, -1]
+            #
+            # dist_end_trajs = np.linalg.norm(prev_quat_traj_end - np.array(quats)[-1])
+            # if dist_end_trajs > 0.5:
+            #     demo[3:] *= -1
 
             # Append demo to demo list
             demos.append(demo)
@@ -274,71 +276,6 @@ def load_LASA_S2(dataset_path, primitives_names):
 
     dt = 1
     return demos, primitive_id, dt
-
-
-def load_lieflows_S3(dataset_dir, demonstrations_names):
-    """
-    Loads demonstrations in numpy file from lieflow
-    """
-    dt_value = 0.01
-    demos, primitive_id, dt = [], [], []
-    for i in range(len(demonstrations_names)):
-        demos_primitive_names = os.listdir(dataset_dir + demonstrations_names[i])
-
-        for demo_primitive_name in demos_primitive_names:
-            data = np.load(dataset_dir + demonstrations_names[i] + '/' + demo_primitive_name, allow_pickle=True)
-            for j in range(data.shape[0]):
-                if j == 10:  # TODO: remove, just too many demos
-                    break
-                euler_angles = data[j].T[3:]
-                quaternions = euler_to_quaternion_batch(euler_angles)
-                demos.append(quaternions)
-                primitive_id.append(i)
-                dt_demo = np.zeros(data[j].shape[0]) + dt_value
-                dt.append(dt_demo)
-    return demos, primitive_id, dt
-
-
-def euler_to_quaternion_batch(euler_angles):
-    """
-    Convert a batch of Euler angles to quaternions.
-
-    Parameters:
-        euler_angles (numpy.ndarray): Array of shape (3, N) containing the batch of Euler angles
-                                       [roll, pitch, yaw] in radians. N is the batch size.
-
-    Returns:
-        numpy.ndarray: Array of shape (4, N) containing the batch of quaternions [w, x, y, z].
-
-    By ChatGPT
-    """
-    roll, pitch, yaw = euler_angles[0], euler_angles[1], euler_angles[2]
-    cy = np.cos(yaw * 0.5)
-    sy = np.sin(yaw * 0.5)
-    cp = np.cos(pitch * 0.5)
-    sp = np.sin(pitch * 0.5)
-    cr = np.cos(roll * 0.5)
-    sr = np.sin(roll * 0.5)
-
-    # Calculate quaternion elements
-    qw = cr * cp * cy + sr * sp * sy
-    qx = sr * cp * cy - cr * sp * sy
-    qy = cr * sp * cy + sr * cp * sy
-    qz = cr * cp * sy - sr * sp * cy
-
-    return np.array([qw, qx, qy, qz])
-
-
-def quaternion_to_euler(q):
-    """
-    Converts quaternions to Euler angles (in radians) in the ZYX convention.
-    Assumes the quaternions are normalized.
-    By ChatGPT
-    """
-    yaw = np.arctan2(2*(q[:, :, 1]*q[:, :, 2] + q[:, :, 0]*q[:, :, 3]), q[:, :, 0]**2 + q[:, :, 1]**2 - q[:, :, 2]**2 - q[:, :, 3]**2)
-    pitch = np.arcsin(2*(q[:, :, 0]*q[:, :, 2] - q[:, :, 1]*q[:, :, 3]))
-    roll = np.arctan2(2*(q[:, :, 0]*q[:, :, 1] + q[:, :, 2]*q[:, :, 3]), q[:, :, 0]**2 - q[:, :, 1]**2 - q[:, :, 2]**2 + q[:, :, 3]**2)
-    return np.stack([yaw, pitch, roll], axis=-1)
 
 
 import matplotlib.pyplot as plt
