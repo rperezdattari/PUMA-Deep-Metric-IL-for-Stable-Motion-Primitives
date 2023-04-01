@@ -27,8 +27,9 @@ class Params:
     weight_decay: float = 0.0001  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 1  # imitation loss weight
-    stabilization_loss_weight: int = 5  # stability loss weight
+    imitation_loss_weight: float = 1  # imitation loss weight
+    stabilization_loss_weight: float = 5  # stability loss weight
+    boundary_loss_weight: float = 0  # boundary loss weight
     imitation_window_size: int = 5  # imitation window size
     stabilization_window_size: int = 5  # stability window size
     stabilization_loss: str = 'contrastive'  # options: contrastive, triplet
@@ -66,8 +67,7 @@ class Params:
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
 
     """ Hyperparameter Optimization """
-    gamma_objective_1 = 0.48  # weight 1 for hyperparameter evaluation
-    gamma_objective_2 = 3.5  # weight 2 for hyperparameter evaluation
+    gamma_objective = 3.5  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """

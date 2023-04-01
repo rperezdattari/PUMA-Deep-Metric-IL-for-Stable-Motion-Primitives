@@ -66,8 +66,7 @@ def train(trial):
 
                 # Compute hyperparameter optimization objective
                 objective = optuna_compute_objective(trial, params, metrics_stab['mean dist to goal'],
-                                                     metrics_acc['RMSE'], metrics_stab['diffeo mismatch'], iteration,
-                                                     prune=prune)
+                                                     metrics_acc['RMSE'], iteration, prune=prune)
 
         # Run one train step of the learner
         loss, _, _ = learner.train_step()

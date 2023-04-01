@@ -26,6 +26,7 @@ class ContrastiveImitation:
         self.generalization_window_size = params.stabilization_window_size
         self.imitation_loss_weight = params.imitation_loss_weight
         self.stabilization_loss_weight = params.stabilization_loss_weight
+        self.boundary_loss_weight = params.boundary_loss_weight
         self.load_model = params.load_model
         self.results_path = params.results_path
         self.resample_length = params.trajectories_resample_length
@@ -166,8 +167,10 @@ class ContrastiveImitation:
         state_sample[replaced_samples, selected_axis] = limits.cuda()
 
         # Create dynamical systems
+        self.params_dynamical_system['saturate transition'] = False
         dynamical_system = self.init_dynamical_system(initial_states=state_sample,
                                                       primitive_type=primitive_type_sample)
+        self.params_dynamical_system['saturate transition'] = True
 
         # Do one transition at the boundary and get velocity
         transition_info = dynamical_system.transition()
@@ -215,7 +218,7 @@ class ContrastiveImitation:
 
         loss = loss / (2 * self.dim_state)
 
-        return loss
+        return loss * self.boundary_loss_weight
 
     def demo_sample(self):
         """
@@ -296,17 +299,17 @@ class ContrastiveImitation:
             loss_list.append(contrastive_matching_cost)
             losses_names.append('Stability')
 
-        state_sample_gen_bound = torch.clone(state_sample_gen)
-        boundary_cost = self.boundary_constrain(state_sample_gen_bound, primitive_type_sample_gen) * 0.1
-        loss_list.append(boundary_cost)
-        losses_names.append('Boundary')
+        # Boundary loss
+        if self.boundary_loss_weight != 0:
+            state_sample_gen_bound = torch.clone(state_sample_gen)
+            boundary_cost = self.boundary_constrain(state_sample_gen_bound, primitive_type_sample_gen)
+            loss_list.append(boundary_cost)
+            losses_names.append('Boundary')
 
         # Sum losses
         loss = 0
         for i in range(len(loss_list)):
             loss += loss_list[i]
-        # id = torch.FloatTensor(loss_list).argmax()
-        # loss = loss_list[id]
 
         return loss, loss_list, losses_names
 

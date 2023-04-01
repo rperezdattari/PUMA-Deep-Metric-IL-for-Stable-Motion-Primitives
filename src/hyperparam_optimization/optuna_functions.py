@@ -8,12 +8,7 @@ def optuna_generate_optimizers(trial, params):
     params.stabilization_loss_weight = trial.suggest_float('stabilization loss weight', low=1e-1, high=10, log=False)
     params.imitation_window_size = trial.suggest_int('imitation window size', low=2, high=15)
     params.stabilization_window_size = trial.suggest_int('stabilization window size', low=2, high=15)
-    params.contrastive_margin = trial.suggest_float('contrastive_margin', low=1e-5, high=1e-1, log=True)
-    params.triplet_margin = params.contrastive_margin
-    if params.adaptive_gains:
-        params.latent_gain_upper_limit = trial.suggest_float('latent gain upper limit', low=1e-3, high=10, log=False)
-    else:
-        params.latent_gain = trial.suggest_float('latent gain', low=1e-4, high=1e-1)
+    params.triplet_margin = trial.suggest_float('triplet margin', low=1e-9, high=1e-1, log=True)
     return params
 
 
@@ -28,9 +23,9 @@ def optuna_get_remaining_models_ids(params_name, length_dataset):
     return remaining_models_ids
 
 
-def optuna_compute_objective(trial, params, mean_distance_to_goal, mean_RMSE, mean_RMSE_trajectory_comparison, iteration, prune):
+def optuna_compute_objective(trial, params, mean_distance_to_goal, mean_RMSE, iteration, prune):
     # Compute objective for optuna
-    objective = mean_RMSE + params.gamma_objective_1 * mean_RMSE_trajectory_comparison + params.gamma_objective_2 * mean_distance_to_goal
+    objective = mean_RMSE + params.gamma_objective * mean_distance_to_goal
     print('Hyper objective:', objective)
     if prune:
         # Report trial

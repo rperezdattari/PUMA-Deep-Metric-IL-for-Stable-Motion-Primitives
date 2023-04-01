@@ -18,11 +18,12 @@ class Params:
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
     learning_rate: float = 0.0001  # AdamW learning rate
-    weight_decay: float = 0.0001  # AdamW weight decay
+    weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 1  # imitation loss weight
-    stabilization_loss_weight: int = 1  # stability loss weight
+    imitation_loss_weight: float = 1  # imitation loss weight
+    stabilization_loss_weight: float = 1  # stability loss weight
+    boundary_loss_weight: float = 0  # boundary loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size
     triplet_margin: float = 1.25e-4  # triplet loss margin
@@ -53,8 +54,7 @@ class Params:
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
 
     """ Hyperparameter Optimization """
-    gamma_objective_1 = 0.48  # weight 1 for hyperparameter evaluation
-    gamma_objective_2 = 3.5  # weight 2 for hyperparameter evaluation
+    gamma_objective = 3.5  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """

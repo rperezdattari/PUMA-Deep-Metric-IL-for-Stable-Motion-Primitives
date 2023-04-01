@@ -22,8 +22,9 @@ class Params:
     weight_decay: float = 0.0000  # AdamW weight decay
 
     """ Contrastive Imitation """
-    imitation_loss_weight: int = 1  # imitation loss weight
-    stabilization_loss_weight: int = 1  # stability loss weight
+    imitation_loss_weight: float = 1  # imitation loss weight
+    stabilization_loss_weight: float = 1  # stability loss weight
+    boundary_loss_weight: float = 0.1  # boundary loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size
     triplet_margin: float = 1e-8  # 1.25e-4 for triplet  # triplet loss margin
@@ -61,8 +62,7 @@ class Params:
     show_plotly: bool = False  # show evaluation during training
 
     """ Hyperparameter Optimization """
-    gamma_objective_1 = 0.48  # weight 1 for hyperparameter evaluation
-    gamma_objective_2 = 3.5  # weight 2 for hyperparameter evaluation
+    gamma_objective = 3.5  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """
