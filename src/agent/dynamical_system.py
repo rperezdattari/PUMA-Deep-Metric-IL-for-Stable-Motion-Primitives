@@ -74,7 +74,8 @@ class DynamicalSystem():
         if self.saturate_transition:
             max_vel_t_d = (1 - x_t) / self.delta_t
             min_vel_t_d = (-1 - x_t) / self.delta_t
-            vel_t_d = torch.clamp(vel_t_d, min_vel_t_d, max_vel_t_d)
+            #vel_t_d = torch.clamp(vel_t_d, min_vel_t_d, max_vel_t_d)
+            vel_t_d = torch.max(torch.min(vel_t_d, max_vel_t_d), min_vel_t_d)  # rewritten for old cluster pytorch version
 
         # Integrate
         x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
