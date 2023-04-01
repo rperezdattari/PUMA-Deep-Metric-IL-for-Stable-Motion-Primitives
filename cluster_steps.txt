@@ -74,3 +74,6 @@ log in: ssh rperezdattari@login.delftblue.tudelft.nl
 
 source /home/rperezdattari/.cache/pypoetry/virtualenvs/condor-7Xoc7Nxu-py3.7/bin/activate
 module load 2022r2 openmpi py-torch
+
+# cancel all jobs
+squeue -u $USER | awk '{print $1}' | tail -n+2 | xargs scancel

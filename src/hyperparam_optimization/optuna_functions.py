@@ -1,6 +1,7 @@
 import optuna
 import numpy as np
 import os
+import math
 
 
 def optuna_generate_optimizers(trial, params):
@@ -26,6 +27,8 @@ def optuna_get_remaining_models_ids(params_name, length_dataset):
 def optuna_compute_objective(trial, params, mean_distance_to_goal, mean_RMSE, iteration, prune):
     # Compute objective for optuna
     objective = mean_RMSE + params.gamma_objective * mean_distance_to_goal
+    if math.isnan(objective):
+        objective = 1e10
     print('Hyper objective:', objective)
     if prune:
         # Report trial
