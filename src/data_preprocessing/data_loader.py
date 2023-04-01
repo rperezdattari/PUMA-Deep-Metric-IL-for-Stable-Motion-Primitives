@@ -1,6 +1,5 @@
 from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB, ABB_R3S3
 from scipy.spatial.transform import Rotation
-from spatialmath import SO3, UnitQuaternion
 import os
 import pickle
 import numpy as np
@@ -92,8 +91,6 @@ def get_data_loader(dataset_name):
         data_loader = load_from_dict
     elif dataset_name == 'LASA_S2':
         data_loader = load_LASA_S2
-    elif dataset_name == 'lieflows_robot':
-        data_loader = load_lieflows_S3
     elif dataset_name == 'ABB':
         data_loader = load_ABB
     elif dataset_name == 'ABB_R3S3':
@@ -194,6 +191,7 @@ def load_ABB(dataset_dir, demonstrations_names):
 
 
 def load_ABB_S3R3(dataset_dir, demonstrations_names):
+    from spatialmath import SO3, UnitQuaternion
     """
     Loads demonstrations in dictionaries for ABB
     """
