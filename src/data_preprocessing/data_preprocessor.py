@@ -288,8 +288,12 @@ class DataPreprocessor:
         max_velocity = np.max(velocity, axis=(0, 1, 3))
 
         # Compute max acceleration
-        min_acceleration = np.min(acceleration, axis=(0, 1, 3))
-        max_acceleration = np.max(acceleration, axis=(0, 1, 3))
+        if self.dynamical_system_order == 2:
+            min_acceleration = np.min(acceleration, axis=(0, 1, 3))
+            max_acceleration = np.max(acceleration, axis=(0, 1, 3))
+        else:
+            min_acceleration = min_velocity * 0  # TODO: remove this eventually, here becasue cluster weird error
+            max_acceleration = max_velocity * 0
 
         # If second order, since the velocity is part of the state, we extend its limits
         if self.dynamical_system_order == 2:
