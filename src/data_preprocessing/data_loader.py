@@ -260,27 +260,21 @@ def load_LASA_S2(dataset_path, primitives_names):
     """
     Load LASA S2 models
     """
-    demos, primitive_id, dt = [], [], []
-
-    # Iterate in each primitive (multi model learning)
+    demos, primitive_id = [], []
     for i in range(len(primitives_names)):
-        demos_primitive = os.listdir(dataset_path + primitives_names[i])
+        path = dataset_path + primitives_names[i] + '.txt'
+        # Read the data from the file
+        with open(path) as f:
+            data = f.read()
 
-        # Iterate over each demo in primitive
-        for demo_primitive in demos_primitive:
-            path = dataset_path + primitives_names[i] + '/' + demo_primitive + '.txt'
+        # Reconstruct the data as a dictionary
+        data = json.loads(data)
 
-            with open(path) as f:
-                data = f.read()
-
-            # Reconstruct the data as a dictionary
-            data = json.loads(data)
-
-            # Iterate through demonstrations
-            for j in range(len(data['xyz'])):
-                s = np.array(data['xyz'][j]).T
-                demos.append(s)
-                primitive_id.append(i)
+        # Iterate through demonstrations
+        for j in range(len(data['xyz'])):
+            s = np.array(data['xyz'][j]).T
+            demos.append(s)
+            primitive_id.append(i)
 
     dt = 1
     return demos, primitive_id, dt
