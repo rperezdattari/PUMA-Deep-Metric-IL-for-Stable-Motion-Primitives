@@ -1,4 +1,4 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB, ABB_R3S3
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, lieflows, ABB, ABB_R3S3, poultry
 from scipy.spatial.transform import Rotation
 import os
 import pickle
@@ -59,6 +59,8 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = ABB
     elif dataset_name == 'ABB_R3S3':
         dataset_primitives_names = ABB_R3S3
+    elif dataset_name == 'poultry':
+        dataset_primitives_names = poultry
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -95,6 +97,8 @@ def get_data_loader(dataset_name):
         data_loader = load_ABB
     elif dataset_name == 'ABB_R3S3':
         data_loader = load_ABB_S3R3
+    elif dataset_name == 'poultry':
+        data_loader = load_poultry
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -256,23 +260,70 @@ def load_LASA_S2(dataset_path, primitives_names):
     """
     Load LASA S2 models
     """
-    demos, primitive_id = [], []
+    demos, primitive_id, dt = [], [], []
+
+    # Iterate in each primitive (multi model learning)
     for i in range(len(primitives_names)):
-        path = dataset_path + primitives_names[i] + '.txt'
-        # Read the data from the file
-        with open(path) as f:
-            data = f.read()
+        demos_primitive = os.listdir(dataset_path + primitives_names[i])
 
-        # Reconstruct the data as a dictionary
-        data = json.loads(data)
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            path = dataset_path + primitives_names[i] + '/' + demo_primitive + '.txt'
 
-        # Iterate through demonstrations
-        for j in range(len(data['xyz'])):
-            s = np.array(data['xyz'][j]).T
-            demos.append(s)
-            primitive_id.append(i)
+            with open(path) as f:
+                data = f.read()
+
+            # Reconstruct the data as a dictionary
+            data = json.loads(data)
+
+            # Iterate through demonstrations
+            for j in range(len(data['xyz'])):
+                s = np.array(data['xyz'][j]).T
+                demos.append(s)
+                primitive_id.append(i)
 
     dt = 1
+    return demos, primitive_id, dt
+
+
+def load_poultry(dataset_path, primitives_names):
+    """
+    Loads demos for poultry use case
+    """
+    demos, primitive_id, dt = [], [], []
+    for i in range(len(primitives_names)):
+        demos_primitive = os.listdir(dataset_path + primitives_names[i])
+        #demos_primitive = [demos_primitive[16]]
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            path = dataset_path + primitives_names[i] + '/' + demo_primitive
+
+            # Read the data from the file
+            data = np.genfromtxt(path, delimiter=',')[1:, 4:].T
+
+            # Check if quaternion flip, and flip if necessary
+            prev_quat = None
+            for j in range(data.shape[1]):
+                quat = data[3:, j]
+                if prev_quat is None:
+                    prev_quat = quat
+
+                dist_quats = np.linalg.norm(quat - prev_quat)
+
+                if dist_quats > 1.0:
+                    quat *= -1
+
+                data[3:, j] = quat
+                prev_quat = quat
+
+            # Check if quaternion trajectory starts from predefined initial hemisphere
+            if data[4, -1] < 0:  # if last element of hemisphere angle negative
+                data[3:, :] *= -1  # flip trajectory such that it starts from predefined initial hemisphere
+
+            demos.append(data)
+            primitive_id.append(i)
+            delta_t = data[0] * 0 + 0.097  # directly gotten from data
+            dt.append(delta_t)
     return demos, primitive_id, dt
 
 

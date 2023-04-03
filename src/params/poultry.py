@@ -6,7 +6,7 @@ import numpy as np
 class Params:
     """ General parameters """
     dataset_name: str = 'poultry'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space, ABB_R3S3
-    results_path: str = 'results/1st_order_R3S3/'
+    results_path: str = 'results/poultry/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '0'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 6  # dimensionality of the data manifold
@@ -37,9 +37,9 @@ class Params:
 
     """ Preprocessing """
     workspace_boundaries_type: str = 'custom'  # options: from data, custom
-    workspace_boundaries: np.ndarray = np.array([[-1.0, 1.0],
-                                                 [-1.0, 1.0],
-                                                 [0.0, 2.0],
+    workspace_boundaries: np.ndarray = np.array([[-0.7, 0.5],
+                                                 [-0.9, 0.0],
+                                                 [-0.3, 0.3],
                                                  [-1.0, 1.0],
                                                  [-1.0, 1.0],
                                                  [-1.0, 1.0],
@@ -59,7 +59,7 @@ class Params:
     density: int = 2  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 400  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
-    show_plotly: bool = False  # show evaluation during training
+    show_plotly: bool = True  # show evaluation during training
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation

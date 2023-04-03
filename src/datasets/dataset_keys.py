@@ -89,3 +89,6 @@ joint_space = ['cleaning_1',
 ABB = ['test']
 ABB_R3S3 = ['test',
             'integration_march']
+
+# Poultry
+poultry = ['v1']
