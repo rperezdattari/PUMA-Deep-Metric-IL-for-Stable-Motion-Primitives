@@ -128,6 +128,7 @@ class ContrastiveImitation:
 
             # Compute and accumulate error
             imitation_error_accumulated += self.mse_loss(x_t_d[:, :self.dim_manifold], state_sample[:, :self.dim_manifold, i + 1].cuda())
+
         imitation_error_accumulated = imitation_error_accumulated / (self.imitation_window_size - 1)
 
         return imitation_error_accumulated * self.imitation_loss_weight
@@ -153,6 +154,7 @@ class ContrastiveImitation:
                 # Transition matching cost
                 y_goal = self.model.get_goals_latent_space_batch(primitive_type_sample)
                 contrastive_matching_cost += self.triplet_loss(y_goal, y_t_task, y_t_task_prev)
+
         contrastive_matching_cost = contrastive_matching_cost / (self.generalization_window_size - 1)
 
         return contrastive_matching_cost * self.stabilization_loss_weight

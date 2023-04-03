@@ -51,9 +51,11 @@ class TripletAngleLoss(nn.Module):
 
     def forward(self, anchor, positive, negative):
         cosine_loss = torch.nn.CosineSimilarity(dim=1)
-        distance_positive = torch.acos(cosine_loss(anchor, positive))
-        distance_negative = torch.acos(cosine_loss(anchor, negative))
-        losses = F.relu(distance_positive + self.margin - distance_negative)# * 0.01
+        cosine_positive = torch.clamp(cosine_loss(anchor, positive), -0.99999, 0.99999)  # clamp necessary to avoid nans
+        cosine_negative = torch.clamp(cosine_loss(anchor, negative), -0.99999, 0.99999)
+        distance_positive = torch.acos(cosine_positive)
+        distance_negative = torch.acos(cosine_negative)
+        losses = F.relu(distance_positive + self.margin - distance_negative)
         return losses.mean()
 
 

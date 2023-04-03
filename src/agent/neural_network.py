@@ -1,4 +1,5 @@
 import torch
+#torch.autograd.set_detect_anomaly(True)
 #torch.manual_seed(0)
 import numpy as np
 
