@@ -50,7 +50,7 @@ def train(trial):
     # Train
     for iteration in range(params.max_iterations + 1):
         # Evaluate model
-        if iteration % params.evaluation_interval == 0:
+        if iteration % params.evaluation_interval == 0 and iteration != 0:
             metrics_acc, metrics_stab = evaluator.run(iteration=iteration)
 
             if params.save_evaluation and not args.hyperparameter_optimization:
