@@ -1,9 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+cosine_loss = torch.nn.CosineSimilarity(dim=1)
 """
 Source: https://github.com/adambielski/siamese-triplet/blob/master/losses.py
 """
+
+
+def great_circle_distance(a, b):
+    cosine = torch.clamp(cosine_loss(a, b), -0.99999, 0.99999)  # clamp necessary to avoid nans
+    distance = torch.acos(cosine)
+    return distance
 
 
 class TripletLoss(nn.Module):
@@ -50,11 +57,8 @@ class TripletAngleLoss(nn.Module):
         self.margin = margin
 
     def forward(self, anchor, positive, negative):
-        cosine_loss = torch.nn.CosineSimilarity(dim=1)
-        cosine_positive = torch.clamp(cosine_loss(anchor, positive), -0.99999, 0.99999)  # clamp necessary to avoid nans
-        cosine_negative = torch.clamp(cosine_loss(anchor, negative), -0.99999, 0.99999)
-        distance_positive = torch.acos(cosine_positive)
-        distance_negative = torch.acos(cosine_negative)
+        distance_positive = great_circle_distance(anchor, positive)
+        distance_negative = great_circle_distance(anchor, negative)
         losses = F.relu(distance_positive + self.margin - distance_negative)
         return losses.mean()
 

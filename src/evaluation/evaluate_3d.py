@@ -1,6 +1,7 @@
 from evaluation.evaluate import Evaluate
 import pickle
 import plotly.graph_objects as go
+import numpy as np
 from agent.utils.dynamical_system_operations import denormalize_state
 
 
@@ -18,34 +19,37 @@ class Evaluate3D(Evaluate):
         Computes qualitative results
         """
         save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pickle'
-        self.plot_DS_plotly(sim_results['visited states demos'], sim_results['visited states grid'], save_path)
+        # Get velocities
+        vel = self.get_vector_field(sim_results['initial states grid'], primitive_id)
+
+        self.plot_DS_plotly(sim_results['visited states demos'], sim_results['visited states grid'], sim_results['grid'], vel, save_path)
         return True
 
     def compute_diffeo_quali_eval(self, sim_results, sim_results_latent, primitive_id, iteration):
         # Not implemented
         return False
 
-    def plot_DS_plotly(self, visited_states, visited_states_grid, save_path):
+    def plot_DS_plotly(self, visited_states, visited_states_grid, grid, vel, save_path):
         """
         Plots demonstrations and simulated trajectories when starting from demos initial states
         """
         plot_data = []
-        # Plot random trajectories
-        for i in range(visited_states_grid.shape[1]):
-            # Denorm states
-            denorm_visited_states = denormalize_state(visited_states_grid, self.x_min, self.x_max)
-
-            # Plot network executions
-            marker_data_executed = go.Scatter3d(
-                x=denorm_visited_states[:, i, 0],
-                y=denorm_visited_states[:, i, 1],
-                z=denorm_visited_states[:, i, 2],
-                marker=dict(size=0.01, color='blue'),
-                line=dict(color='blue', width=10),
-                opacity=0.1,
-                # mode='markers'
-            )
-            plot_data.append(marker_data_executed)
+        # # Plot random trajectories
+        # for i in range(visited_states_grid.shape[1]):
+        #     # Denorm states
+        #     denorm_visited_states = denormalize_state(visited_states_grid, self.x_min, self.x_max)
+        #
+        #     # Plot network executions
+        #     marker_data_executed = go.Scatter3d(
+        #         x=denorm_visited_states[:, i, 0],
+        #         y=denorm_visited_states[:, i, 1],
+        #         z=denorm_visited_states[:, i, 2],
+        #         marker=dict(size=0.01, color='blue'),
+        #         line=dict(color='blue', width=10),
+        #         opacity=0.1,
+        #         # mode='markers'
+        #     )
+        #     plot_data.append(marker_data_executed)
 
         for i in range(self.n_trajectories):
             # Plot datasets
@@ -53,9 +57,11 @@ class Evaluate3D(Evaluate):
                 x=self.demonstrations_eval[i][0],
                 y=self.demonstrations_eval[i][1],
                 z=self.demonstrations_eval[i][2],
-                marker=go.scatter3d.Marker(size=3, color='red'),
-                opacity=0.5,
-                mode='markers',
+                #marker=go.scatter3d.Marker(size=3, color='white'),
+                marker=dict(size=1.5, color='white'),
+                line=dict(color='white', width=15),
+                opacity=1.0,
+                #mode='markers',
                 name='demonstration %i' % i,
             )
             plot_data.append(marker_data_demos)
@@ -66,9 +72,11 @@ class Evaluate3D(Evaluate):
                 x=denorm_visited_states[:, i, 0],
                 y=denorm_visited_states[:, i, 1],
                 z=denorm_visited_states[:, i, 2],
-                marker=go.scatter3d.Marker(size=3, color='green'),
-                opacity=0.5,
-                mode='markers',
+                #marker=go.scatter3d.Marker(size=3, color='red'),
+                marker=dict(size=1.5, color='red'),
+                line=dict(color='red', width=15),
+                opacity=1.0,
+                #mode='markers',
                 name='CONDOR %i' % i,
             )
             plot_data.append(marker_data_executed)
@@ -81,8 +89,26 @@ class Evaluate3D(Evaluate):
                            margin=dict(l=65, r=50, b=65, t=90),
                            showlegend=False,
                            font=dict(family='Time New Roman', size=15))
-        fig = go.Figure(data=plot_data, layout=layout)
 
+        # Create sphere
+        norm_vel = np.linalg.norm(vel, axis=2)
+        #colors_sphere = np.zeros(shape=norm_vel.shape)
+        sphere = go.Surface(x=grid[0], y=grid[1], z=grid[2], opacity=1.0, surfacecolor=norm_vel, colorscale='Viridis')
+
+        # Create the arrow traces. We remove the cone in the goal and add a very small cone to make them black
+        normalized_vel = vel / norm_vel.reshape(self.density, self.density, 1)
+        arrows = go.Cone(x=np.append(grid[0].reshape(-1)[1:], 0),
+                         y=np.append(grid[1].reshape(-1)[1:], 0),
+                         z=np.append(grid[2].reshape(-1)[1:], 0),
+                         u=np.append(normalized_vel[:, :, 0].reshape(-1)[1:], 1e-5),
+                         v=np.append(normalized_vel[:, :, 1].reshape(-1)[1:], 1e-5),
+                         w=np.append(normalized_vel[:, :, 2].reshape(-1)[1:], 1e-5),
+                         sizemode='absolute', sizeref=0.5, showscale=False, colorscale='Greys', opacity=0.6)
+
+        # plot data
+        plot_data.append(sphere)
+        plot_data.append(arrows)
+        fig = go.Figure(data=plot_data, layout=layout)
         plot_data = {'3D_plot': fig}
 
         # Save

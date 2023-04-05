@@ -61,11 +61,18 @@ class Evaluate():
         # If data in sphere, map sampled points to cartesian coordinates
         if self.space == 'sphere':
             if self.dim_manifold == 2:
-                points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density**self.dim_manifold)) * np.pi
-                grid_x = self.radius * np.sin(points_sphere[0]) * np.cos(points_sphere[1])
-                grid_y = self.radius * np.sin(points_sphere[0]) * np.sin(points_sphere[1])
-                grid_z = self.radius * np.cos(points_sphere[0])
+                theta, phi = np.linspace(0, np.pi, self.density), np.linspace(0, 2 * np.pi, self.density)
+                THETA, PHI = np.meshgrid(theta, phi)
+                grid_x = self.radius * np.sin(THETA) * np.cos(PHI)
+                grid_y = self.radius * np.sin(THETA) * np.sin(PHI)
+                grid_z = self.radius * np.cos(THETA)
                 grid = [grid_x, grid_y, grid_z]
+
+                # points_sphere = np.random.uniform(low=-1, high=1, size=(self.dim_manifold, self.density**self.dim_manifold)) * np.pi
+                # grid_x = self.radius * np.sin(points_sphere[0]) * np.cos(points_sphere[1])
+                # grid_y = self.radius * np.sin(points_sphere[0]) * np.sin(points_sphere[1])
+                # grid_z = self.radius * np.cos(points_sphere[0])
+                # grid = [grid_x, grid_y, grid_z]
             elif self.dim_manifold == 3:
                 points_sphere = np.random.uniform(low=-1, high=1, size=(self.density ** self.dim_manifold, self.dim_manifold)) * np.pi
                 rot = Rotation.from_euler('xyz', points_sphere)
@@ -175,11 +182,11 @@ class Evaluate():
             x_t = dynamical_system.transition(space='task', **kwargs)['desired state']
 
         # Denormalize states
-        x_init_denorm = denormalize_state(initial_states[:, :self.dim_manifold].cpu().detach().numpy(),
+        x_init_denorm = denormalize_state(initial_states[:, :self.dim_state].cpu().detach().numpy(),
                                           x_min=np.array(self.x_min),
                                           x_max=np.array(self.x_max))
 
-        x_t_denorm = denormalize_state(x_t[:, :self.dim_manifold].cpu().detach().numpy(),
+        x_t_denorm = denormalize_state(x_t[:, :self.dim_state].cpu().detach().numpy(),
                                        x_min=np.array(self.x_min),
                                        x_max=np.array(self.x_max))
 
