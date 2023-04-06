@@ -20,9 +20,6 @@ Use screen!
 - Copy paste results: scp rperezdattari@linux-bastion.tudelft.nl:CONDOR/src/results.zip .
                       scp rperezdattari@linux-bastion.tudelft.nl:/tudelft.net/staff-umbrella/condorstorage/results.zip .
 
-
-- Run condor 3D: python main.py --DS CONDOR --train True --load-model False --obstacles False --plot-1 False --plot-2 False --save-fig False --dimensions 3 --subsample False
-
 Reactive control: Robot sensor interface
 
 zip -r results.zip results/1st_order_basic/2/ results/1st_order_basic/21/ results/1st_order_basic/23/ results/1st_order_basic/24/ results/1st_order_basic/26/ results/1st_order_basic/27/ results/1st_order_basic/29/ results/1st_order_basic/3/ results/1st_order_basic/4/ results/1st_order_basic/5/ results/1st_order_basic/7/ results/1st_order_basic/8/ results/1st_order_basic/9/
