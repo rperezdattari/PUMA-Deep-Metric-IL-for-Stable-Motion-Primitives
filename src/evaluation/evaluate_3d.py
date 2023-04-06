@@ -87,14 +87,30 @@ class Evaluate3D(Evaluate):
         #colors_sphere = np.zeros(shape=norm_vel.shape)
         sphere = go.Surface(x=grid[0], y=grid[1], z=grid[2], opacity=1.0, surfacecolor=norm_vel, colorscale='Viridis')
 
-        # Create the arrow traces. We remove the cone in the goal and add a very small cone to make them black
+        # Create the arrow traces. We remove the cones in the goal and add a very small cone to make them black
         normalized_vel = vel / norm_vel.reshape(self.density, self.density, 1)
-        arrows = go.Cone(x=np.append(grid[0].reshape(-1)[1:], 0),
-                         y=np.append(grid[1].reshape(-1)[1:], 0),
-                         z=np.append(grid[2].reshape(-1)[1:], 0),
-                         u=np.append(normalized_vel[:, :, 0].reshape(-1)[1:], 1e-5),
-                         v=np.append(normalized_vel[:, :, 1].reshape(-1)[1:], 1e-5),
-                         w=np.append(normalized_vel[:, :, 2].reshape(-1)[1:], 1e-5),
+
+        x = grid[0].reshape(-1)
+        y = grid[1].reshape(-1)
+        z = grid[2].reshape(-1)
+        norm_vel_x = normalized_vel[:, :, 0].reshape(-1)
+        norm_vel_y = normalized_vel[:, :, 1].reshape(-1)
+        norm_vel_z = normalized_vel[:, :, 2].reshape(-1)
+
+        index_goal = np.where(z == 1)  # get indexes in goal
+        x = np.delete(x, index_goal)
+        y = np.delete(y, index_goal)
+        z = np.delete(z, index_goal)
+        norm_vel_x = np.delete(norm_vel_x, index_goal)
+        norm_vel_y = np.delete(norm_vel_y, index_goal)
+        norm_vel_z = np.delete(norm_vel_z, index_goal)
+
+        arrows = go.Cone(x=np.append(x, 0),
+                         y=np.append(y, 0),
+                         z=np.append(z, 0),
+                         u=np.append(norm_vel_x, 1e-5),
+                         v=np.append(norm_vel_y, 1e-5),
+                         w=np.append(norm_vel_z, 1e-5),
                          sizemode='absolute', sizeref=0.5, showscale=False, colorscale='Greys', opacity=0.6)
 
         # Layout info
@@ -113,12 +129,21 @@ class Evaluate3D(Evaluate):
         plot_data.append(sphere)
         plot_data.append(arrows)
         fig = go.Figure(data=plot_data, layout=layout)
+
+        fig.add_trace(
+            go.Scatter3d(x=[0],
+                         y=[0],
+                         z=[1.015],
+                         mode='markers',
+                         marker=dict(size=5, color='blue'),)
+        )
+
         plot_data = {'3D_plot': fig}
 
         # Save
         print('Saving image data to %s...' % save_path)
         pickle.dump(plot_data, open(save_path, 'wb'))
-        pio.write_image(fig, save_path + '.pdf', width=1300, height=1300)
+        pio.write_image(fig, '.' + save_path.split('.')[1] + '.pdf', width=1300, height=1300)
 
         if self.show_plotly:
             fig.show()
