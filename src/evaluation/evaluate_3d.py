@@ -1,6 +1,7 @@
 from evaluation.evaluate import Evaluate
 import pickle
 import plotly.graph_objects as go
+import plotly.io as pio
 import numpy as np
 from agent.utils.dynamical_system_operations import denormalize_state
 
@@ -58,9 +59,9 @@ class Evaluate3D(Evaluate):
                 y=self.demonstrations_eval[i][1],
                 z=self.demonstrations_eval[i][2],
                 #marker=go.scatter3d.Marker(size=3, color='white'),
-                marker=dict(size=1.5, color='white'),
-                line=dict(color='white', width=15),
-                opacity=1.0,
+                marker=dict(size=1, color='white'),
+                line=dict(color='white', width=10),
+                opacity=0.9,
                 #mode='markers',
                 name='demonstration %i' % i,
             )
@@ -69,26 +70,17 @@ class Evaluate3D(Evaluate):
             # Plot network executions
             denorm_visited_states = denormalize_state(visited_states, self.x_min, self.x_max)
             marker_data_executed = go.Scatter3d(
-                x=denorm_visited_states[:, i, 0],
-                y=denorm_visited_states[:, i, 1],
-                z=denorm_visited_states[:, i, 2],
+                x=denorm_visited_states[:, i, 0]*1.01,  # we lift a bit network executions for plotting purposes
+                y=denorm_visited_states[:, i, 1]*1.01,
+                z=denorm_visited_states[:, i, 2]*1.01,
                 #marker=go.scatter3d.Marker(size=3, color='red'),
-                marker=dict(size=1.5, color='red'),
-                line=dict(color='red', width=15),
+                marker=dict(size=1, color='red'),
+                line=dict(color='red', width=10),
                 opacity=1.0,
                 #mode='markers',
                 name='CONDOR %i' % i,
             )
             plot_data.append(marker_data_executed)
-
-        layout = go.Layout(autosize=True,
-                           scene=dict(
-                               xaxis_title='x (m)',
-                               yaxis_title='y (m)',
-                               zaxis_title='z (m)'),
-                           margin=dict(l=65, r=50, b=65, t=90),
-                           showlegend=False,
-                           font=dict(family='Time New Roman', size=15))
 
         # Create sphere
         norm_vel = np.linalg.norm(vel, axis=2)
@@ -105,6 +97,18 @@ class Evaluate3D(Evaluate):
                          w=np.append(normalized_vel[:, :, 2].reshape(-1)[1:], 1e-5),
                          sizemode='absolute', sizeref=0.5, showscale=False, colorscale='Greys', opacity=0.6)
 
+        # Layout info
+        layout = go.Layout(autosize=True,
+                           # scene=dict(
+                           #     xaxis_title='x (m)',
+                           #     yaxis_title='y (m)',
+                           #     zaxis_title='z (m)'),
+                           scene=dict(xaxis=dict(visible=False),
+                                      yaxis=dict(visible=False),
+                                      zaxis=dict(visible=False)),
+                           margin=dict(l=65, r=50, b=65, t=90),
+                           showlegend=False,
+                           font=dict(family='Time New Roman', size=15))
         # plot data
         plot_data.append(sphere)
         plot_data.append(arrows)
@@ -114,6 +118,7 @@ class Evaluate3D(Evaluate):
         # Save
         print('Saving image data to %s...' % save_path)
         pickle.dump(plot_data, open(save_path, 'wb'))
+        pio.write_image(fig, save_path + '.pdf', width=1300, height=1300)
 
         if self.show_plotly:
             fig.show()

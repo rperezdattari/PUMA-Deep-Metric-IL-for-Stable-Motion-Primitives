@@ -17,16 +17,16 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.0004924  # 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0008574  # 0.0001  # AdamW learning rate
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
     imitation_loss_weight: float = 1  # imitation loss weight
-    stabilization_loss_weight: float = 4.16  # 1  # stability loss weight
+    stabilization_loss_weight: float = 3.496  # 1  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 15  # imitation window size
-    stabilization_window_size: int = 6  # 2  # stability window size
-    triplet_margin: float = 5.5366e-7  # 4.523e-9  # 1.25e-4  # triplet loss margin
+    imitation_window_size: int = 14  # 15  # imitation window size
+    stabilization_window_size: int = 14  # 6  # 2  # stability window size
+    triplet_margin: float = 3.0122e-05  # 4.523e-9  # 1.25e-4  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
 
     """ Training """
