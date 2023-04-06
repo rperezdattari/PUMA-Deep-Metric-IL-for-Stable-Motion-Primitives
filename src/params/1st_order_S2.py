@@ -55,14 +55,14 @@ class Params:
     density: int = 35  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
-    show_plotly: bool = True  # show evaluation during training
+    show_plotly: bool = False  # show evaluation during training
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """
-    length_dataset = 30  # number of primitives in dataset
+    length_dataset = 24  # number of primitives in dataset
 
     def __init__(self, results_base_directory):
         self.results_path = results_base_directory + self.results_path
