@@ -37,6 +37,7 @@ class Evaluate2DO1(Evaluate):
         # Update plot params
         # plt.rcParams.update({'font.size': 14,
         #                      'figure.figsize': (8, 9)})
+        plt.rcParams.update({'figure.figsize': (8, 9)})
 
         # Obstacle avoidance
         if obstacles is not None:

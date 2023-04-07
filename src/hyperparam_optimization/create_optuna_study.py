@@ -49,5 +49,8 @@ if task == 'optimize':  # add initial guess of parameters of hyperparameter opti
                      'stabilization window size': params.stabilization_window_size,
                      'triplet margin': params.triplet_margin}
 
+    if params.boundary_loss_weight > 0:
+        initial_guess.update({'boundary loss weight': params.boundary_loss_weight})
+
     # Add guess to study
     study.enqueue_trial(initial_guess)

@@ -5,7 +5,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 # Get arguments
 parser = ArgumentParser()
-parser.add_argument('--params', type=str, default='1st_order_S2_euc', help='')
+parser.add_argument('--params', type=str, default='1st_order_2D_euc_boundary', help='')
 parser.add_argument('--results-base-directory', type=str, default='./', help='')
 args = parser.parse_args()
 
