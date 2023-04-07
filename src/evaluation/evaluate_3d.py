@@ -143,7 +143,7 @@ class Evaluate3D(Evaluate):
         # Save
         print('Saving image data to %s...' % save_path)
         pickle.dump(plot_data, open(save_path, 'wb'))
-        pio.write_image(fig, '.' + save_path.split('.')[1] + '.pdf', width=1300, height=1300)
+        pio.write_image(fig, save_path + '.pdf', width=1300, height=1300)
 
         if self.show_plotly:
             fig.show()
