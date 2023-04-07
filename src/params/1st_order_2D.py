@@ -21,6 +21,7 @@ class Params:
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
+    triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
     stabilization_loss_weight: float = 3.496  # 1  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight

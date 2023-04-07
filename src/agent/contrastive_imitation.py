@@ -59,8 +59,12 @@ class ContrastiveImitation:
 
         # Initialize Neural Network losses
         self.mse_loss = torch.nn.MSELoss()
-        #self.triplet_loss = TripletLoss(margin=params.triplet_margin)
-        self.triplet_loss = TripletAngleLoss(margin=params.triplet_margin)
+        if params.triplet_type == 'euclidean':
+            self.triplet_loss = TripletLoss(margin=params.triplet_margin)
+        elif params.triplet_type == 'spherical':
+            self.triplet_loss = TripletAngleLoss(margin=params.triplet_margin)
+        else:
+            raise ValueError('triplet type not valid, options: euclidean, spherical.')
         #self.triplet_loss = TripletCosineLoss(margin=params.triplet_margin)
         #self.triplet_loss = SoftTripletLoss()
 

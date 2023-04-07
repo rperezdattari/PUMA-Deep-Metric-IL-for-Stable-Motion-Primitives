@@ -6,7 +6,7 @@ import numpy as np
 class Params:
     """ General parameters """
     dataset_name: str = 'LASA_S2'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space
-    results_path: str = 'results/1st_order_S2/'
+    results_path: str = 'results/1st_order_S2_euc/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '21'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 2  # dimensionality of the data manifold
@@ -18,17 +18,17 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.000730  # 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0001  # AdamW learning rate
     weight_decay: float = 0.0000  # AdamW weight decay
 
     """ Contrastive Imitation """
-    triplet_type: str = 'spherical'  # distance metric used in triplet loss
+    triplet_type: str = 'euclidean'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
-    stabilization_loss_weight: float = 2.091  #  1  # stability loss weight
+    stabilization_loss_weight: float = 1  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 12  # 15  # imitation window size
-    stabilization_window_size: int = 11  # 2  # stability window size
-    triplet_margin: float = 9.397e-06  # 1e-8  # 1.25e-4 for triplet  # triplet loss margin
+    imitation_window_size: int = 15  # imitation window size
+    stabilization_window_size: int = 2  # stability window size
+    triplet_margin: float = 1.25e-4  # for triplet  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
 
     """ Training """
@@ -56,7 +56,7 @@ class Params:
     density: int = 35  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
-    show_plotly: bool = False  # show evaluation during training
+    show_plotly: bool = True  # show evaluation during training
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation
