@@ -19,7 +19,7 @@ class Evaluate3D(Evaluate):
         """
         Computes qualitative results
         """
-        save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pickle'
+        save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration)
         # Get velocities
         vel = self.get_vector_field(sim_results['initial states grid'], primitive_id)
 
@@ -141,8 +141,8 @@ class Evaluate3D(Evaluate):
         plot_data = {'3D_plot': fig}
 
         # Save
-        print('Saving image data to %s...' % save_path)
-        pickle.dump(plot_data, open(save_path, 'wb'))
+        print('Saving image data to %s...' % (save_path + '.pickle'))
+        pickle.dump(plot_data, open((save_path + '.pickle'), 'wb'))
         pio.write_image(fig, save_path + '.pdf', width=1300, height=1300)
 
         if self.show_plotly:
