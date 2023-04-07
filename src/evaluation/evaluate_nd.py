@@ -11,7 +11,7 @@ class EvaluateND(Evaluate):
     def __init__(self, learner, data, params, verbose=True):
         super().__init__(learner, data, params, verbose=verbose)
 
-    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration):
+    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Computes qualitative results
         """

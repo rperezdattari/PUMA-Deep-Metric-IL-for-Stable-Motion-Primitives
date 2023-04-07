@@ -319,34 +319,13 @@ class Evaluate():
             self.best_FD = metrics_acc['FD']
             self.best_model = True
 
-    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration):
+    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Qualitative evaluation, to be computed in subclass
         """
         raise NotImplementedError('Should be implemented in subclass!')
 
-    def compute_diffeo_quanti_eval(self, sim_results, sim_results_latent):
-        """
-        Computes diffeomorphism mismatch error
-        """
-        # Get RMSE between task space and latent space trajectory
-        length_demonstrations = self.demonstrations_eval[0][0].shape[0]
-        visited_positions_denormalized = denormalize_state(sim_results['visited states grid'][:length_demonstrations, :, :], self.x_min, self.x_max)
-        visited_positions_latent_denormalized = denormalize_state(sim_results_latent['visited states grid'][:length_demonstrations, :, :], self.x_min, self.x_max)
-        RMSE_trajectory_comparison = get_RMSE(visited_positions_denormalized, visited_positions_latent_denormalized, verbose=False)
-
-        # Compute mean
-        mean_RMSE_trajectory_comparison = np.mean(RMSE_trajectory_comparison)
-
-        return mean_RMSE_trajectory_comparison
-
-    def compute_diffeo_quali_eval(self, sim_results, sim_results_latent, primitive_id, iteration):
-        """
-        Qualitative evaluation diffeomorphism, to be computed in subclass
-        """
-        raise NotImplementedError('Should be implemented in subclass!')
-
-    def run(self, iteration):
+    def run(self, iteration, save_path=None):
         """
         Runs complete evaluation
         """
@@ -364,17 +343,7 @@ class Evaluate():
                 metrics_acc, metrics_stab = self.compute_quanti_eval(sim_results, attractor, primitive_id)
 
             if self.quali_eval:
-                self.compute_quali_eval(sim_results, attractor, primitive_id, iteration)
-
-            if self.diffeo_eval:
-                # Simulate trajectories starting from initial conditions demos and from equally-spaced grid
-                sim_results_latent = self.simulate_system(primitive_id, space='latent')
-
-                if self.diffeo_quanti_eval:
-                    metrics_stab['diffeo mismatch'] = self.compute_diffeo_quanti_eval(sim_results, sim_results_latent)
-
-                if self.diffeo_quali_eval:
-                    self.compute_diffeo_quali_eval(sim_results, sim_results_latent, primitive_id, iteration)
+                self.compute_quali_eval(sim_results, attractor, primitive_id, iteration, save_path)
 
         return metrics_acc, metrics_stab
 

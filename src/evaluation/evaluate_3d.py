@@ -15,7 +15,7 @@ class Evaluate3D(Evaluate):
 
         self.show_plotly = params.show_plotly
 
-    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration):
+    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Computes qualitative results
         """
@@ -25,10 +25,6 @@ class Evaluate3D(Evaluate):
 
         self.plot_DS_plotly(sim_results['visited states demos'], sim_results['visited states grid'], sim_results['grid'], vel, save_path)
         return True
-
-    def compute_diffeo_quali_eval(self, sim_results, sim_results_latent, primitive_id, iteration):
-        # Not implemented
-        return False
 
     def plot_DS_plotly(self, visited_states, visited_states_grid, grid, vel, save_path):
         """

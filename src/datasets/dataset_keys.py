@@ -45,7 +45,7 @@ LASA_S2 = ['S2_Angle',
            'S2_Multi_Models_4',
            'S2_NShape',
            'S2_PShape',
-           'S2_RShape',
+           'S2_Rshape',
            'S2_Saeghe',
            'S2_Sharpc',
            'S2_Sine',
@@ -55,9 +55,6 @@ LASA_S2 = ['S2_Angle',
            'S2_Trapezoid',
            'S2_WShape',
            'S2_Zshape']
-
-# Lieflows dataset
-lieflows = ['pouring']
 
 # LAIR dataset
 LAIR = ['e',
@@ -91,3 +88,7 @@ ABB_R3S3 = ['test',
 
 # Poultry
 poultry = ['v1']
+
+dataset_keys_dic = {'LASA': LASA,
+                    'LAIR': LAIR,
+                    'LASA_S2': LASA_S2}

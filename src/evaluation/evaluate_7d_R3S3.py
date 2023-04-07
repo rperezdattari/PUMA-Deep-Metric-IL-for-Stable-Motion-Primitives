@@ -14,22 +14,18 @@ class Evaluate7DR3S3(EvaluateND):
 
         self.show_plotly = params.show_plotly
 
-    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration):
+    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Computes qualitative results
         """
         # Run eval nd
-        super().compute_quali_eval(sim_results, attractor, primitive_id, iteration)
+        super().compute_quali_eval(sim_results, attractor, primitive_id, iteration, save_path)
 
         # Create 3D plost
         save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pickle'
         self.plot_DS_plotly_angle(sim_results['visited states demos'][:, :, 3:], sim_results['visited states grid'][:, :, 3:], save_path)
         self.plot_DS_plotly_pos(sim_results['visited states demos'][:, :, :3], sim_results['visited states grid'][:, :, :3], save_path)
         return True
-
-    def compute_diffeo_quali_eval(self, sim_results, sim_results_latent, primitive_id, iteration):
-        # Not implemented
-        return False
 
     def plot_DS_plotly_angle(self, visited_states, visited_states_grid, save_path):
         """
@@ -113,7 +109,6 @@ class Evaluate7DR3S3(EvaluateND):
             fig.show()
 
         return True
-
 
     def plot_DS_plotly_pos(self, visited_states, visited_states_grid, save_path):
         """

@@ -14,7 +14,7 @@ class Evaluate4DS3(Evaluate):
 
         self.show_plotly = params.show_plotly
 
-    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration):
+    def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Computes qualitative results
         """

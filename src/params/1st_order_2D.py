@@ -53,6 +53,7 @@ class Params:
     density: int = 16  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
+    show_plot: bool = False  # show quanti eval
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation
