@@ -16,9 +16,10 @@ class Evaluate():
 
         # Params file parameters
         self.fixed_point_iteration_thr = params.fixed_point_iteration_thr
-        self.dim_state = params.manifold_dimensions * params.dynamical_system_order
+        self.dim_space = params.manifold_dimensions
         if params.space == 'sphere' or params.space == 'euclidean_sphere':
-            self.dim_state += 1
+            self.dim_space += 1
+        self.dim_state = self.dim_space * params.dynamical_system_order
         self.dim_manifold = params.manifold_dimensions
         self.ignore_n_spurious = params.ignore_n_spurious
         self.multi_motion = params.multi_motion
@@ -93,15 +94,14 @@ class Evaluate():
 
         # Transform grid into tensor that pytorch can use
         initial_positions_grid = torch.empty(0)
-        for i in range(self.dim_state):  # TODO: used to be dim_manifold
+        for i in range(self.dim_space):
             initial_positions_grid = torch.cat([initial_positions_grid,
                                                 torch.from_numpy(grid[i].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_grid = initial_positions_grid.cuda()
 
         # Get initial derivatives and append to initial states (for second order systems)
-        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], 0]).cuda()   # TODO: fix for order > 1
-        assert self.dynamical_system_order == 1, 'line above has been modified and no longer works with order > 1'
+        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], self.dim_state - self.dim_space]).cuda()
 
         # Get initial states
         initial_states_grid = torch.cat([initial_positions_grid, initial_derivatives_grid], dim=1)
@@ -116,15 +116,14 @@ class Evaluate():
 
         # Get initial positions
         initial_positions_demos = torch.empty(0)
-        for i in range(self.dim_state):  # TODO: used to be dim_manifold
+        for i in range(self.dim_space):
             initial_positions_demos = torch.cat([initial_positions_demos,
                                                  torch.from_numpy(demos[:, 0, i, 0].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_demos = initial_positions_demos.cuda()
 
         # Get initial derivatives and append to initial states (second order systems)
-        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], 0]).cuda()  # TODO: fix for order > 1
-        assert self.dynamical_system_order == 1, 'line above has been modified and no longer works with order > 1'
+        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], self.dim_state - self.dim_space]).cuda()
 
         # Get initial states
         initial_states_demos = torch.cat([initial_positions_demos, initial_derivatives_demos], dim=1)
@@ -225,7 +224,7 @@ class Evaluate():
         """
 
         # Denormalize and preprocess trajectories
-        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_state], self.x_min, self.x_max)  # TODO: used to be dim_manifold
+        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_space], self.x_min, self.x_max)
         demos = self.preprocess_demonstrations_eval(demonstrations_eval, visited_states.shape[1],
                                                     max_trajectory_length)
 
@@ -265,11 +264,11 @@ class Evaluate():
         """
 
         # Initialize padded demos
-        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_state])  # TODO: used to be dim_manifold
+        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_space])
 
         # Add zeros to each trajectory such that they all have the same length as the longest one
         for i in range(n_trajectories):
-            for j in range(self.dim_state):  # TODO: used to be dim_manifold
+            for j in range(self.dim_space):
                 demonstrations_eval_i_j = demonstrations_eval[i][j]
                 length_diff = max_trajectory_length - len(demonstrations_eval_i_j)
                 demonstrations_eval_i_j = np.append(demonstrations_eval_i_j, np.zeros(length_diff))
@@ -337,7 +336,7 @@ class Evaluate():
             sim_results = self.simulate_system(primitive_id)
 
             # Get last point trajectories grid
-            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_state], self.x_min, self.x_max)  # TODO: used to be dim_manifold
+            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_space], self.x_min, self.x_max)
 
             if self.quanti_eval:
                 metrics_acc, metrics_stab = self.compute_quanti_eval(sim_results, attractor, primitive_id)

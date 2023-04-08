@@ -13,9 +13,10 @@ class DataPreprocessor:
         self.state_increment = params.state_increment
         self.dim_manifold = params.manifold_dimensions
         self.dynamical_system_order = params.dynamical_system_order
-        self.dim_state = self.dim_manifold * self.dynamical_system_order
+        self.dim_space = params.manifold_dimensions
         if params.space == 'sphere' or params.space == 'euclidean_sphere':
-            self.dim_state += 1
+            self.dim_space += 1
+        self.dim_state = self.dim_space * params.dynamical_system_order
         self.workspace_boundaries_type = params.workspace_boundaries_type
         self.workspace_boundaries = np.array(params.workspace_boundaries)
         self.eval_length = params.evaluation_samples_length
@@ -233,7 +234,7 @@ class DataPreprocessor:
 
             # Create input for spline: demonstrations and corresponding phases
             spline_input = []
-            for i in range(self.dim_state):  # TODO: used to be dim_manifold
+            for i in range(self.dim_space):
                 spline_input.append(demo_norm[:, i])
             spline_input.append(curve_phases)
             spline_input.append(delta_phases)
@@ -249,7 +250,7 @@ class DataPreprocessor:
             for _ in range(self.imitation_window_size + (self.dynamical_system_order - 1)):
                 # Compute demo positions based on current phase value
                 spline_values = splev(u, spline_parameters)
-                position_window = spline_values[:self.dim_state]  # TODO: used to be dim_manifold
+                position_window = spline_values[:self.dim_space]
 
                 # Append position to window trajectory
                 window.append(position_window)

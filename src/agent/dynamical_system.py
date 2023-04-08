@@ -35,6 +35,7 @@ class DynamicalSystem():
         elif self.space == 'euclidean_sphere':
             self.radius = 1  # TODO: fix this hardcoding
             projected_points = self.map_points_to_sphere(x_init[:, 3:])
+            assert self.order == 1, 'euclidean sphere not implemented for higher-order dynamical systems'
             x_init = torch.concat([x_init[:, :3], projected_points], dim=1)  # pytorch doesn't like inplace operations
 
         # Init dynamical system state
