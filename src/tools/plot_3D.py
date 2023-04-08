@@ -9,7 +9,7 @@ from dash.dependencies import Input, Output
 iteration = sys.argv[1]
 plot_data = pickle.load(
     open('results/final/LASA_S2/1st_order_S2/22/images/primitive_0_iter_%s.pickle' % iteration, 'rb'))
-global fig
+
 fig = go.Figure(data=plot_data['3D_plot'])
 
 camera = dict(

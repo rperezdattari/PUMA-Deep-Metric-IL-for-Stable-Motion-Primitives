@@ -215,8 +215,8 @@ class ContrastiveImitation:
                                           normal_lower.view(-1, self.dim_state, 1)).reshape(-1)
 
             # Concat with zero in case no points sampled in boundaries, to avoid nans
-            dot_product_upper = torch.concat([dot_product_upper, torch.zeros(1).cuda()])
-            dot_product_lower = torch.concat([dot_product_lower, torch.zeros(1).cuda()])
+            dot_product_upper = torch.cat([dot_product_upper, torch.zeros(1).cuda()])
+            dot_product_lower = torch.cat([dot_product_lower, torch.zeros(1).cuda()])
 
             # Compute losses
             loss += F.relu(dot_product_upper).mean()
