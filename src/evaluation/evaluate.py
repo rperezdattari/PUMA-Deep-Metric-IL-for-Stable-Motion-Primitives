@@ -280,12 +280,24 @@ class Evaluate():
         """
         Computes quantitative evaluation metrics
         """
-        # Get accuracy metrics
-        metrics_acc = self.get_accuracy_metrics(sim_results['visited states demos'],
-                                                self.demonstrations_eval,
-                                                self.max_trajectory_length,
-                                                self.eval_indexes)
 
+        # Ugly fix for evaluating in multi-models TODO: fix
+        demos_eval = []
+        eval_index = []
+        for i in range(len(self.primitive_ids)):
+            if self.primitive_ids[i] == 0:
+                demos_eval.append(self.demonstrations_eval[i])
+                eval_index.append(self.eval_indexes[i])
+
+        # Get accuracy metrics
+        # metrics_acc = self.get_accuracy_metrics(sim_results['visited states demos'],
+        #                                         self.demonstrations_eval,
+        #                                         self.max_trajectory_length,
+        #                                         self.eval_indexes)
+        metrics_acc = self.get_accuracy_metrics(sim_results['visited states demos'],
+                                                demos_eval,
+                                                self.max_trajectory_length,
+                                                eval_index)
         # Get stability metrics
         metrics_stab = self.get_stability_metrics(attractor, self.goals[primitive_id])
 
@@ -339,7 +351,8 @@ class Evaluate():
             attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_space], self.x_min, self.x_max)
 
             if self.quanti_eval:
-                metrics_acc, metrics_stab = self.compute_quanti_eval(sim_results, attractor, primitive_id)
+                if primitive_id == 0:  # TODO: ugly fix for multiple models, fix!
+                    metrics_acc, metrics_stab = self.compute_quanti_eval(sim_results, attractor, primitive_id)
 
             if self.quali_eval:
                 self.compute_quali_eval(sim_results, attractor, primitive_id, iteration, save_path)

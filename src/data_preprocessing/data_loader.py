@@ -230,13 +230,19 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
                 quats.append(quat)
                 prev_quat = quat
 
-            # Check if quaternion trajectory starts from predefined initial hemisphere
-            quats = np.array(quats)
-            if quats[0, -1] > 0:  # if last element of initial angle positive
-                quats *= -1  # flip trajectory such that it starts from predefined initial hemisphere
+            # Set identity quat as goal
+            last_quat = UnitQuaternion(quats[-1])
+            quats = [(UnitQuaternion(quats[i]) / last_quat).A for i in range(len(quats))]
+            # # Check if quaternion trajectory starts from predefined initial hemisphere
+            # quats = np.array(quats)
+            # if quats[0, -1] > 0:  # if last element of initial angle positive
+            #     quats *= -1  # flip trajectory such that it starts from predefined initial hemisphere
+
+            # Set zero as goal
+            positions = np.array(data['x_pos']) - np.array(data['x_pos'])[-1] + np.array([0, 0, 1])
 
             # Create demo out of positions and quats
-            demo = np.concatenate([np.array(data['x_pos']), quats], axis=1).T
+            demo = np.concatenate([positions, quats], axis=1).T
 
             # # Flip complete demo if goal is in the other hemisphere
             # if len(demos) < 1:
