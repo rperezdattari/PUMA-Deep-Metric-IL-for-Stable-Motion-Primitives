@@ -5,10 +5,10 @@ import numpy as np
 @dataclass
 class Params:
     """ General parameters """
-    dataset_name: str = 'poultry'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space, ABB_R3S3
+    dataset_name: str = 'ABB_R3S3'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space, ABB_R3S3
     results_path: str = 'results/1st_order_R3S3/'
     multi_motion: bool = False  # true when learning multiple motions together
-    selected_primitives_ids: str = '0'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
+    selected_primitives_ids: str = '2,3'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 6  # dimensionality of the data manifold
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
@@ -22,6 +22,7 @@ class Params:
     weight_decay: float = 0.0000  # AdamW weight decay
 
     """ Contrastive Imitation """
+    triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
     stabilization_loss_weight: float = 1  # stability loss weight
     boundary_loss_weight: float = 0.1  # boundary loss weight
@@ -57,7 +58,7 @@ class Params:
     ignore_n_spurious: bool = False  # when selecting best model, true to ignore amount of spurious attractors
     fixed_point_iteration_thr = 0.2  # distance threshold to consider that a point did not reach the goal
     density: int = 2  # density^workspace_dimension = amount of points sampled from state space for evaluation
-    simulated_trajectory_length: int = 400  # integration length for evaluation
+    simulated_trajectory_length: int = 700  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
     show_plotly: bool = False  # show evaluation during training
 

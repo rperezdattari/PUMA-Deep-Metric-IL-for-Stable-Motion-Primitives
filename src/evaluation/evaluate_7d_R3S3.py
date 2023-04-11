@@ -21,10 +21,10 @@ class Evaluate7DR3S3(EvaluateND):
         # Run eval nd
         super().compute_quali_eval(sim_results, attractor, primitive_id, iteration, save_path)
 
-        # Create 3D plost
-        save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pickle'
-        self.plot_DS_plotly_angle(sim_results['visited states demos'][:, :, 3:], sim_results['visited states grid'][:, :, 3:], save_path)
-        self.plot_DS_plotly_pos(sim_results['visited states demos'][:, :, :3], sim_results['visited states grid'][:, :, :3], save_path)
+        # Create 3D plost TODO: uncomment eventually
+        #save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pickle'
+        #self.plot_DS_plotly_angle(sim_results['visited states demos'][:, :, 3:], sim_results['visited states grid'][:, :, 3:], save_path)
+        #self.plot_DS_plotly_pos(sim_results['visited states demos'][:, :, :3], sim_results['visited states grid'][:, :, :3], save_path)
         return True
 
     def plot_DS_plotly_angle(self, visited_states, visited_states_grid, save_path):

@@ -27,7 +27,7 @@ class EvaluateND(Evaluate):
 
         # Plot
         save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pdf'
-        self.plot_nd_motion(sim_results, time_demonstrations, time_simulations, save_path=save_path)
+        self.plot_nd_motion(sim_results, time_demonstrations, time_simulations, primitive_id, save_path=save_path)
         return True
 
     def compute_time(self, delta_t_history):
@@ -46,7 +46,7 @@ class EvaluateND(Evaluate):
             time_history.append(time_history_demo)
         return time_history
 
-    def plot_nd_motion(self, sim_results, time_demonstrations, time_simulations, save_path):
+    def plot_nd_motion(self, sim_results, time_demonstrations, time_simulations, primitive_id, save_path):
         """
         Plots n-dimensional motion per dimension
         """
@@ -78,9 +78,13 @@ class EvaluateND(Evaluate):
         denorm_visited_states_demos = denormalize_state(sim_results['visited states demos'], self.x_min, self.x_max)
         for i in range(n_joints):
             for j in range(self.n_trajectories):
-                axs[i].plot(time_demonstrations[j], self.demonstrations_eval[j][i], color='black', linewidth=8)
+                if self.primitive_ids[j] == primitive_id:
+                    axs[i].plot(time_demonstrations[j], self.demonstrations_eval[j][i], color='black', linewidth=8)
+                    axs[i].scatter(time_demonstrations[j][-1], self.demonstrations_eval[j][i][-1], color='red', edgecolors='black', zorder=10000, s=180)
+
+        for i in range(n_joints):
+            for j in range(np.sum(self.primitive_ids == primitive_id)):
                 axs[i].plot(time_simulations, denorm_visited_states_demos[:, j, i], color='red', linestyle='--', linewidth=2)
-                axs[i].scatter(time_demonstrations[j][-1], self.demonstrations_eval[j][i][-1], color='red', edgecolors='black', zorder=10000, s=180)
 
         fig.tight_layout()
 
