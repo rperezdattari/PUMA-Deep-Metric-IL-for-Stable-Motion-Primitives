@@ -81,10 +81,11 @@ class NeuralNetwork(torch.nn.Module):
         Creates a batch with latent space goals computed in 'update_goals_latent_space'
         """
         goals_latent_space_batch = torch.zeros(primitive_type.shape[0], self.latent_space_dim).cuda()
-        one_hot = torch.FloatTensor(np.identity(primitive_type.shape[1])).cuda()  # TODO: for ugly fix
-        one_hot = one_hot.reshape(1, primitive_type.shape[1], primitive_type.shape[1]).repeat(primitive_type.shape[0], 1, 1)
+        if primitive_type.ndim > 1:  # TODO: ugly fix for multi case, fix
+            one_hot = torch.FloatTensor(np.identity(primitive_type.shape[1])).cuda()  # TODO: for ugly fix
+            one_hot = one_hot.reshape(1, primitive_type.shape[1], primitive_type.shape[1]).repeat(primitive_type.shape[0], 1, 1)
         for i in range(self.n_primitives):
-            if primitive_type.shape[1] > 1:  # TODO: ugly fix for multi case, fix
+            if primitive_type.ndim > 1:  # TODO: ugly fix for multi case, fix
                 mask = (primitive_type == one_hot[:, i])[:, 0]
                 goals_latent_space_batch[mask] = self.goals_latent_space[i]
             else:

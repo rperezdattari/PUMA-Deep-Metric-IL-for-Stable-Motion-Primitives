@@ -76,7 +76,7 @@ class DynamicalSystem():
             max_vel_t_d = (1 - x_t) / self.delta_t
             min_vel_t_d = (-1 - x_t) / self.delta_t
             #vel_t_d = torch.clamp(vel_t_d, min_vel_t_d, max_vel_t_d)
-            vel_t_d = torch.max(torch.min(vel_t_d, max_vel_t_d), min_vel_t_d)  # rewritten for old cluster pytorch version
+            vel_t_d = torch.max(torch.min(vel_t_d, max_vel_t_d), min_vel_t_d)  # TODO: rewritten for old cluster pytorch version
 
         # Integrate
         x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
@@ -103,12 +103,14 @@ class DynamicalSystem():
             # Position
             max_acc_t_d = (1 - pos_t - vel_t * self.delta_t) / self.delta_t**2
             min_acc_t_d = (-1 - pos_t - vel_t * self.delta_t) / self.delta_t**2
-            acc_t_d = torch.clamp(acc_t_d, min_acc_t_d, max_acc_t_d)
+            #acc_t_d = torch.clamp(acc_t_d, min_acc_t_d, max_acc_t_d)
+            acc_t_d = torch.max(torch.min(acc_t_d, max_acc_t_d), min_acc_t_d)  # TODO: rewritten for old cluster pytorch version
 
             # Velocity
             max_acc_t_d = (self.max_vel - vel_t) / self.delta_t
             min_acc_t_d = (self.min_vel - vel_t) / self.delta_t
-            acc_t_d = torch.clamp(acc_t_d, min_acc_t_d, max_acc_t_d)
+            #acc_t_d = torch.clamp(acc_t_d, min_acc_t_d, max_acc_t_d)
+            acc_t_d = torch.max(torch.min(acc_t_d, max_acc_t_d), min_acc_t_d)  # TODO: rewritten for old cluster pytorch version
 
         # Integrate
         vel_t_d = euler_integration(vel_t, acc_t_d, self.delta_t)
