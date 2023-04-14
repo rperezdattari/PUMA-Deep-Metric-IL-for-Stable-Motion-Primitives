@@ -6,10 +6,11 @@ import math
 
 def optuna_generate_optimizers(trial, params):
     params.learning_rate = trial.suggest_float('learning rate', low=1e-5, high=1e-3, log=True)
-    params.stabilization_loss_weight = trial.suggest_float('stabilization loss weight', low=1e-1, high=10, log=False)
     params.imitation_window_size = trial.suggest_int('imitation window size', low=2, high=15)
-    params.stabilization_window_size = trial.suggest_int('stabilization window size', low=2, high=15)
-    params.triplet_margin = trial.suggest_float('triplet margin', low=1e-9, high=1e-1, log=True)
+    if params.stabilization_loss_weight > 0:
+        params.stabilization_loss_weight = trial.suggest_float('stabilization loss weight', low=1e-1, high=10, log=False)
+        params.stabilization_window_size = trial.suggest_int('stabilization window size', low=2, high=15)
+        params.triplet_margin = trial.suggest_float('triplet margin', low=1e-9, high=1e-1, log=True)
     if params.boundary_loss_weight > 0:
         params.boundary_loss_weight = trial.suggest_float('boundary loss weight', low=1e-2, high=10, log=False)
     return params

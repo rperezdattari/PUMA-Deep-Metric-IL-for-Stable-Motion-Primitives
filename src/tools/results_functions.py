@@ -11,6 +11,8 @@ from dash.dependencies import Input, Output
 import plotly.io as pio
 import plotly.graph_objects as go
 import pickle
+import pandas as pd
+import seaborn as sns
 
 
 def get_number_of_primitives(dataset_name):
@@ -27,7 +29,8 @@ def show_dataset(dataset_name, subplots, figsize):
             axs[i].scatter(demonstrations[j][0], demonstrations[j][1], color='red')
 
 
-def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density, simulated_trajectory_length, results_base_directory, saturate=True):
+def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density, simulated_trajectory_length,
+                    results_base_directory, fixed_point_iteration_thr=None, saturate=True):
     results_directory = 'results/final/%s/%s/' % (dataset_name, model_name)
     results_directory = results_base_directory + results_directory
     save_path = 'results_analysis/%s_%s_%s.pdf' % (dataset_name, model_name, str(demo_id))
@@ -49,6 +52,9 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
     params.quanti_eval = quanti_eval
     params.quali_eval = quali_eval
 
+    if fixed_point_iteration_thr is not None:
+        params.fixed_point_iteration_thr = fixed_point_iteration_thr
+
     # Initialize framework
     learner, evaluator, data = initialize_framework(params, model_name, verbose=False)
 
@@ -58,14 +64,13 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
 
 
 def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_name, demos_ids, density,
-                               simulated_trajectory_length, results_base_directory, save_name=None):
+                               simulated_trajectory_length, results_base_directory, fixed_point_iteration_thr=None,
+                               save_name=None):
     metrics_models = {}
     for model_name in models_names:
         RMSE, DTWD, FD = [], [], []
         n_spurious = []
         for demo_id in demos_ids:
-            if demo_id == 5:  # TODO: remove
-                continue
             if quanti_eval:
                 print('Evaluating model: %s; demo: %i' % (model_name, demo_id))
 
@@ -74,11 +79,13 @@ def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_na
             else:
                 saturate = True
             metrics_acc, metrics_stab = evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density,
-                                                        simulated_trajectory_length, results_base_directory, saturate=saturate)
-            RMSE.append(metrics_acc['RMSE'])
-            DTWD.append(metrics_acc['DTWD'])
-            FD.append(metrics_acc['FD'])
-            n_spurious.append(metrics_stab['n spurious'])
+                                                        simulated_trajectory_length, results_base_directory,
+                                                        fixed_point_iteration_thr=fixed_point_iteration_thr, saturate=saturate)
+            if quanti_eval:
+                RMSE.append(metrics_acc['RMSE'])
+                DTWD.append(metrics_acc['DTWD'])
+                FD.append(metrics_acc['FD'])
+                n_spurious.append(metrics_stab['n spurious'])
 
         metrics_model = {'RMSE': RMSE,
                          'DTWD': DTWD,
@@ -128,3 +135,32 @@ def plot_LASA_S2(dataset_name, model_name, demo_id, model, camera):
 
     # Show
     fig.show()
+
+
+def plot_accuracy_metrics(models_names, metrics_names, metrics_models, title, colors=None, unit='mm'):
+    #plt.rcParams.update({'font.size': 14})
+
+    column_names = metrics_names
+    df = pd.DataFrame(columns=column_names)
+
+    i = 0
+    for metrics_model in metrics_models:
+        n_demonstrations = len(metrics_model['RMSE'])
+        for metric in metrics_names:
+            metric_data = pd.DataFrame({'Metric': np.repeat(metric, n_demonstrations),
+                                        'Error (%s)' % unit: metrics_model[metric],
+                                        'Model': np.repeat(models_names[i], n_demonstrations)})
+            df = pd.concat([df, metric_data])
+        i += 1
+    sns.set_theme(style='whitegrid', rc={'grid.linestyle': '--', 'text.usetex': True, "font.family": "Times New Roman"})
+    if colors is None:
+        palette = sns.color_palette('tab10')
+    else:
+        palette = colors
+    metrics_plot = sns.boxplot(x='Metric', y='Error (%s)' % unit, hue='Model', data=df, linewidth=3, showfliers=False,
+                               width=0.7, zorder=3, palette=palette)
+    metrics_plot.tick_params(labelsize=10)
+    plt.title(title, y=1, fontsize=20)
+    plt.tight_layout()
+    plt.savefig('results_analysis/box_plot_%s.pdf' % title)
+    plt.show()

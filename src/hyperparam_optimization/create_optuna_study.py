@@ -44,10 +44,12 @@ study = optuna.create_study(study_name=study_name,
 
 if task == 'optimize':  # add initial guess of parameters of hyperparameter optimization
     initial_guess = {'learning rate': params.learning_rate,
-                     'stabilization loss weight': params.stabilization_loss_weight,
-                     'imitation window size': params.imitation_window_size,
-                     'stabilization window size': params.stabilization_window_size,
-                     'triplet margin': params.triplet_margin}
+                     'imitation window size': params.imitation_window_size}
+
+    if params.stabilization_loss_weight > 0:
+        initial_guess.update({'stabilization loss weight': params.stabilization_loss_weight,
+                              'stabilization window size': params.stabilization_window_size,
+                              'triplet margin': params.triplet_margin})
 
     if params.boundary_loss_weight > 0:
         initial_guess.update({'boundary loss weight': params.boundary_loss_weight})
