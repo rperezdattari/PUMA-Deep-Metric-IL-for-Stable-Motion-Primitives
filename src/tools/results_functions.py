@@ -57,16 +57,41 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
     return metrics_acc, metrics_stab
 
 
-def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_name, demo_id, density,
-                               simulated_trajectory_length, results_base_directory):
-    for i in range(len(models_names)):
-        model_name = models_names[i]
-        if model_name == 'behavioral_cloning':
-            saturate = False
-        else:
-            saturate = True
-        evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density,
-                        simulated_trajectory_length, results_base_directory, saturate=saturate)
+def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_name, demos_ids, density,
+                               simulated_trajectory_length, results_base_directory, save_name=None):
+    metrics_models = {}
+    for model_name in models_names:
+        RMSE, DTWD, FD = [], [], []
+        n_spurious = []
+        for demo_id in demos_ids:
+            if demo_id == 5:  # TODO: remove
+                continue
+            if quanti_eval:
+                print('Evaluating model: %s; demo: %i' % (model_name, demo_id))
+
+            if model_name == 'behavioral_cloning':
+                saturate = False
+            else:
+                saturate = True
+            metrics_acc, metrics_stab = evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density,
+                                                        simulated_trajectory_length, results_base_directory, saturate=saturate)
+            RMSE.append(metrics_acc['RMSE'])
+            DTWD.append(metrics_acc['DTWD'])
+            FD.append(metrics_acc['FD'])
+            n_spurious.append(metrics_stab['n spurious'])
+
+        metrics_model = {'RMSE': RMSE,
+                         'DTWD': DTWD,
+                         'FD': FD,
+                         'n_spurious': n_spurious}
+
+        metrics_models[model_name] = metrics_model
+
+    if quanti_eval:
+        with open('results_analysis/saved_metrics/%s.pk' % save_name, 'wb') as file:
+            pickle.dump(metrics_models, file)
+
+    return metrics_models
 
 
 def get_camera_parameters(dataset_name, model_name, demo_id, model):

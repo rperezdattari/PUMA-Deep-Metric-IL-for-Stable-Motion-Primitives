@@ -52,7 +52,7 @@ class Evaluate2DO1(Evaluate):
 
         # Plot vector field
         plt.streamplot(grid_x1, grid_x2, vel[:, :, 0], vel[:, :, 1],
-                       linewidth=0.5, density=2, arrowstyle='fancy',
+                       linewidth=1.0, density=1.5, arrowstyle='fancy',
                        arrowsize=1, color='black', cmap=plt.cm.Greys)
 
         # Plot contour with norm of the velocities
