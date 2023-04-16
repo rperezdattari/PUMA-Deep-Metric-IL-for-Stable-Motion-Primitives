@@ -33,7 +33,7 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
                     results_base_directory, fixed_point_iteration_thr=None, saturate=True):
     results_directory = 'results/final/%s/%s/' % (dataset_name, model_name)
     results_directory = results_base_directory + results_directory
-    save_path = 'results_analysis/%s_%s_%s.pdf' % (dataset_name, model_name, str(demo_id))
+    save_path = results_base_directory + 'results_analysis/%s_%s_%s.pdf' % (dataset_name, model_name, str(demo_id))
 
     # Get parameters
     Params = getattr(importlib.import_module('params.' + model_name), 'Params')
