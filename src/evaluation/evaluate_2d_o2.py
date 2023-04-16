@@ -16,7 +16,10 @@ class Evaluate2DO2(Evaluate):
         """
         Computes qualitative results
         """
-        save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pdf'
+        # Plot
+        if save_path is None:
+            save_path = self.learner.save_path + 'images/' + 'primitive_%i_iter_%i' % (primitive_id, iteration) + '.pdf'
+
         self.plot_dynamical_system(sim_results, attractor, save_path)
         return True
 
