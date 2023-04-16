@@ -32,6 +32,7 @@ class Evaluate():
         self.simulated_trajectory_length = params.simulated_trajectory_length
         self.dynamical_system_order = params.dynamical_system_order
         self.space = params.space
+        self.skip_stability_evaluation = params.stabilization_loss_weight == 0  # for behavioral cloning
 
         # Parameters data processor
         self.primitive_ids = np.array(data['demonstrations primitive id'])
@@ -322,7 +323,7 @@ class Evaluate():
             fewer_spurious = False  # ignore this value in the logical statement
             same_spurious = True  # set this one to true, so that we depend on the metric error
 
-        if fewer_spurious or (same_spurious and lower_metric_error):  # give priority to number of spurious attractors
+        if fewer_spurious or (same_spurious and lower_metric_error) or (self.skip_stability_evaluation and lower_metric_error):  # give priority to number of spurious attractors
             self.best_n_spurious = metrics_stab['n spurious']
             self.best_metric = metrics_acc['metrics sum']
             self.best_RMSE = metrics_acc['RMSE']

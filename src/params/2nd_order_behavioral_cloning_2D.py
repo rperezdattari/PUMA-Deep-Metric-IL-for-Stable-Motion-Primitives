@@ -9,7 +9,7 @@ class Params:
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '3'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 2  # dimensionality of the data
-    saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
+    saturate_out_of_boundaries_transitions: bool = False  # True to enforce positively invariant set
     dynamical_system_order: int = 2  # options: 1, 2
     space: str = 'euclidean'  # data manifold shape
 
@@ -17,7 +17,7 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0001964  # 0.0001  # AdamW learning rate
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
@@ -53,6 +53,7 @@ class Params:
     density: int = 16  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
+    show_plot: bool = False  # show quanti eval
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation

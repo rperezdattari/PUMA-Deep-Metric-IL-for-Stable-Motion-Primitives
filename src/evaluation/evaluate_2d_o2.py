@@ -10,6 +10,8 @@ class Evaluate2DO2(Evaluate):
     def __init__(self, learner, data, params, verbose=True):
         super().__init__(learner, data, params, verbose=verbose)
 
+        self.show_plot = params.show_plot
+
     def compute_quali_eval(self, sim_results, attractor, primitive_id, iteration, save_path):
         """
         Computes qualitative results
@@ -64,6 +66,9 @@ class Evaluate2DO2(Evaluate):
         # Save
         print('Saving image to %s...' % save_path)
         plt.savefig(save_path, bbox_inches='tight')
+
+        if self.show_plot:
+            plt.show()
 
         # Close
         plt.clf()
