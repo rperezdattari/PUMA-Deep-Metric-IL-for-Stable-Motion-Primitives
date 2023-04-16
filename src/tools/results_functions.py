@@ -95,7 +95,7 @@ def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_na
         metrics_models[model_name] = metrics_model
 
     if quanti_eval:
-        with open('results_analysis/saved_metrics/%s.pk' % save_name, 'wb') as file:
+        with open(results_base_directory + 'results_analysis/saved_metrics/%s.pk' % save_name, 'wb') as file:
             pickle.dump(metrics_models, file)
 
     return metrics_models
