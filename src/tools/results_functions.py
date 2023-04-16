@@ -137,7 +137,7 @@ def plot_LASA_S2(dataset_name, model_name, demo_id, model, camera):
     fig.show()
 
 
-def plot_accuracy_metrics(models_names, metrics_names, metrics_models, title, colors=None, unit='mm'):
+def plot_accuracy_metrics(models_names, metrics_names, metrics_models, title, results_base_directory, colors=None, unit='mm'):
     #plt.rcParams.update({'font.size': 14})
 
     column_names = metrics_names
@@ -162,5 +162,5 @@ def plot_accuracy_metrics(models_names, metrics_names, metrics_models, title, co
     metrics_plot.tick_params(labelsize=10)
     plt.title(title, y=1, fontsize=20)
     plt.tight_layout()
-    plt.savefig('results_analysis/box_plot_%s.pdf' % title)
+    plt.savefig(results_base_directory + 'results_analysis/box_plot_%s.pdf' % title)
     plt.show()
