@@ -43,7 +43,7 @@ module use /opt/insy/modulefiles
 module load cuda/11.2 cudnn/11.2-8.1.1.33
 export PYTHONPATH=$PYTHONPATH:/home/nfs/rperezdattari/pcgrad
 
-srun python3 run_optuna.py --params 2nd_behavioral_cloning_2D --train-dataset True --results-base-directory /tudelft.net/staff-umbrella/condorstorage/riemannian/
+srun python3 run_optuna.py --params 2nd_order_behavioral_cloning_2D --train-dataset True --results-base-directory /tudelft.net/staff-umbrella/condorstorage/riemannian/
 
 # Measure GPU usage of your job (result)
 /usr/bin/nvidia-smi --query-accounted-apps='gpu_utilization,mem_utilization,max_memory_usage,time' --format='csv' | /usr/bin/grep -v -F "$previous"
