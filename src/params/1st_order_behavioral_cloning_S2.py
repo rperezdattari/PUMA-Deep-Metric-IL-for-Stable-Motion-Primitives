@@ -59,7 +59,7 @@ class Params:
     show_plotly: bool = False  # show evaluation during training
 
     """ Hyperparameter Optimization """
-    gamma_objective = 3.5  # weight for hyperparameter evaluation
+    gamma_objective = 0.0  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """

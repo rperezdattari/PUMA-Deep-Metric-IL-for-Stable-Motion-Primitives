@@ -17,7 +17,7 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.0001964  # 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0001  # AdamW learning rate
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
@@ -56,7 +56,7 @@ class Params:
     show_plot: bool = False  # show quanti eval
 
     """ Hyperparameter Optimization """
-    gamma_objective = 3.5  # weight for hyperparameter evaluation
+    gamma_objective = 0.0  # weight for hyperparameter evaluation
     optuna_n_trials = 1000  # maximum number of optuna trials
 
     """ Dataset training """
