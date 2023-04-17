@@ -45,6 +45,7 @@ class Params:
     state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
     """ Evaluation """
+    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, evenly spaced
     save_evaluation: bool = True  # true to save evaluation results
     evaluation_interval: int = 1000  # interval between training iterations to evaluate model
     quanti_eval: bool = True  # quantitative evaluation

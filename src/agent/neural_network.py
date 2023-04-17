@@ -51,7 +51,7 @@ class NeuralNetwork(torch.nn.Module):
         self.norm_de_dx2 = torch.nn.LayerNorm(neurons_hidden_layers)
         self.decoder3_dx = torch.nn.Linear(neurons_hidden_layers, n_output)
 
-        # Latent space
+        # Latent space TODO: remove this eventually
         self.gain_nn_1 = torch.nn.Linear(latent_input_size, self.latent_space_dim)
 
         self.norm_latent_gain_input = torch.nn.LayerNorm(latent_input_size)

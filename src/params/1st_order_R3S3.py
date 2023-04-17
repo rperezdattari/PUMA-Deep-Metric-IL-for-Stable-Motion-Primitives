@@ -37,6 +37,7 @@ class Params:
     max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
+    spline_sample_type: str = 'evenly spaced'  # resample from spline type, options: from data, evenly spaced
     workspace_boundaries_type: str = 'custom'  # options: from data, custom
     workspace_boundaries: np.ndarray = np.array([[-1.0, 1.0],
                                                  [-1.0, 1.0],
