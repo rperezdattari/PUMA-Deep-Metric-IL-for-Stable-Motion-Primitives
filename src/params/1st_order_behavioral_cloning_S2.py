@@ -19,7 +19,7 @@ class Params:
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
     learning_rate: float = 0.0002890  # 0.0001  # AdamW learning rate
-    weight_decay: float = 0.0000  # AdamW weight decay
+    weight_decay: float = 0.0001  # AdamW weight decay
 
     """ Contrastive Imitation """
     triplet_type: str = 'spherical'  # distance metric used in triplet loss
@@ -34,7 +34,7 @@ class Params:
     """ Training """
     train: bool = True  # true when training
     load_model: bool = False  # true to load previously trained model
-    max_iterations: int = 41000  # maximum number of training iterations
+    max_iterations: int = 61000  # maximum number of training iterations
 
     """ Preprocessing """
     spline_sample_type: str = 'from data'  # resample from spline type, options: from data, evenly spaced

@@ -8,8 +8,7 @@ def get_RMSE(sim_trajectories, demos, eval_indexes=None, verbose=True):
         if verbose:
             print('Calculating RMSE; trajectory:', k + 1)
         if eval_indexes is not None:
-            RMSE.append(
-                np.sqrt(np.mean((sim_trajectories[eval_indexes[k], k, :] - demos[eval_indexes[k], k, :]) ** 2)))
+            RMSE.append(np.sqrt(np.mean((sim_trajectories[eval_indexes[k], k, :] - demos[eval_indexes[k], k, :]) ** 2)))
         else:
             RMSE.append(np.sqrt(np.mean((sim_trajectories[:, k, :] - demos[:, k, :]) ** 2)))
     return RMSE
