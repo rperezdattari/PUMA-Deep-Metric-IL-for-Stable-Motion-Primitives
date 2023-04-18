@@ -25,7 +25,7 @@ class Params:
     imitation_loss_weight: float = 1  # imitation loss weight
     stabilization_loss_weight: float = 0  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 15  # 15  # imitation window size
+    imitation_window_size: int = 11  # 15  # imitation window size
     stabilization_window_size: int = 14  # 6  # 2  # stability window size
     triplet_margin: float = 3.0122e-05  # 4.523e-9  # 1.25e-4  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
