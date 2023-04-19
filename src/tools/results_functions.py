@@ -30,7 +30,7 @@ def show_dataset(dataset_name, subplots, figsize):
 
 
 def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density, simulated_trajectory_length,
-                    results_base_directory, fixed_point_iteration_thr=None, saturate=True):
+                    evaluation_samples_length, results_base_directory, fixed_point_iteration_thr=None, saturate=True):
     results_directory = 'results/final/%s/%s/' % (dataset_name, model_name)
     results_directory = results_base_directory + results_directory
     save_path = results_base_directory + 'results_analysis/%s_%s_%s.pdf' % (dataset_name, model_name, str(demo_id))
@@ -49,6 +49,7 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
     params.show_plot = True
     params.density = density
     params.simulated_trajectory_length = simulated_trajectory_length
+    params.evaluation_samples_length = evaluation_samples_length
     params.quanti_eval = quanti_eval
     params.quali_eval = quali_eval
 
@@ -64,8 +65,8 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
 
 
 def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_name, demos_ids, density,
-                               simulated_trajectory_length, results_base_directory, fixed_point_iteration_thr=None,
-                               save_name=None):
+                               simulated_trajectory_length, evaluation_samples_length, results_base_directory,
+                               fixed_point_iteration_thr=None, save_name=None):
     metrics_models = {}
     for model_name in models_names:
         RMSE, DTWD, FD = [], [], []
@@ -79,8 +80,10 @@ def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_na
             else:
                 saturate = True
             metrics_acc, metrics_stab = evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density,
-                                                        simulated_trajectory_length, results_base_directory,
-                                                        fixed_point_iteration_thr=fixed_point_iteration_thr, saturate=saturate)
+                                                        simulated_trajectory_length, evaluation_samples_length,
+                                                        results_base_directory,
+                                                        fixed_point_iteration_thr=fixed_point_iteration_thr,
+                                                        saturate=saturate)
             if quanti_eval:
                 RMSE.append(metrics_acc['RMSE'])
                 DTWD.append(metrics_acc['DTWD'])

@@ -45,8 +45,6 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = LASA
     elif dataset_name == 'LASA_S2':
         dataset_primitives_names = LASA_S2
-    elif dataset_name == 'lieflows_robot':
-        dataset_primitives_names = lieflows
     elif dataset_name == 'LAIR':
         dataset_primitives_names = LAIR
     elif dataset_name == 'optitrack':
