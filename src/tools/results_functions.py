@@ -49,9 +49,9 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
     params.show_plot = True
     params.density = density
     params.simulated_trajectory_length = simulated_trajectory_length
-    params.evaluation_samples_length = evaluation_samples_length
     params.quanti_eval = quanti_eval
     params.quali_eval = quali_eval
+    params.evaluation_samples_length = evaluation_samples_length
 
     if fixed_point_iteration_thr is not None:
         params.fixed_point_iteration_thr = fixed_point_iteration_thr
