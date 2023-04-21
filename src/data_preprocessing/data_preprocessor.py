@@ -250,6 +250,7 @@ class DataPreprocessor:
                 u = curve_phases
             else:
                 raise NameError('Spline sample type not valid, check params file for options.')
+
             # Iterate using imitation window size to get position labels for backpropagation through time
             window = []
             for _ in range(self.imitation_window_size + (self.dynamical_system_order - 1)):
