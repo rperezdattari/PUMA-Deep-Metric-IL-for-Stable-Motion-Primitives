@@ -40,7 +40,7 @@ class DynamicalSystem():
 
         # Init dynamical system state
         self.x_t_d = x_init
-        self.hist_y_t = []
+        self.y_t = self.model.encoder(x_init, self.primitive_type)
 
     def map_points_to_sphere(self, x_t):
         """
@@ -133,10 +133,10 @@ class DynamicalSystem():
             x_t = self.x_t_d
 
         # Map task state to latent state (psi)
-        y_t = self.model.encoder(x_t, self.primitive_type)
+        self.y_t = self.model.encoder(x_t, self.primitive_type)
 
         # Map latent state to task state derivative (vel/acc) (phi)
-        dx_t_d = self.map_to_velocity(y_t)
+        dx_t_d = self.map_to_velocity(self.y_t)
 
         # Saturate (to keep state inside boundary) and integrate derivative
         if self.order == 1:
@@ -155,7 +155,7 @@ class DynamicalSystem():
         # Collect transition info
         transition_info = {'desired state': self.x_t_d,
                            'desired velocity': vel_t_d,
-                           'latent state': y_t}
+                           'latent state': self.y_t}
 
         return transition_info
 

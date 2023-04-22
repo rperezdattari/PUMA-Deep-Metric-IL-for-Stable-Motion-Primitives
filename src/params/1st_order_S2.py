@@ -18,25 +18,26 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.000730  # 0.0001  # AdamW learning rate
-    weight_decay: float = 0.0000  # AdamW weight decay
+    learning_rate: float = 0.0001  # AdamW learning rate
+    weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
     triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
-    stabilization_loss_weight: float = 2.091  #  1  # stability loss weight
+    stabilization_loss_weight: float = 1  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 12  # 15  # imitation window size
-    stabilization_window_size: int = 11  # 2  # stability window size
-    triplet_margin: float = 9.397e-06  # 1e-8  # 1.25e-4 for triplet  # triplet loss margin
+    imitation_window_size: int = 15  # imitation window size
+    stabilization_window_size: int = 2  # stability window size
+    triplet_margin: float = 1.25e-4  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
 
     """ Training """
     train: bool = True  # true when training
     load_model: bool = False  # true to load previously trained model
-    max_iterations: int = 61000  # maximum number of training iterations
+    max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
+    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, evenly spaced
     workspace_boundaries_type: str = 'custom'  # options: from data, custom
     workspace_boundaries: np.ndarray = np.array([[-1.0, 1.0],
                                                  [-1.0, 1.0],
@@ -45,7 +46,6 @@ class Params:
     state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
     """ Evaluation """
-    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, evenly spaced
     save_evaluation: bool = True  # true to save evaluation results
     evaluation_interval: int = 1000  # interval between training iterations to evaluate model
     quanti_eval: bool = True  # quantitative evaluation
