@@ -247,9 +247,9 @@ class Evaluate():
         self.metrics_sum = mean_RMSE + mean_DTWD + mean_FD
 
         # Append results to history
-        self.RMSE.append(mean_RMSE)
-        self.DTWD.append(mean_DTWD)
-        self.FD.append(mean_FD)
+        self.RMSE.append(RMSE)
+        self.DTWD.append(DTWD)
+        self.FD.append(FD)
 
         # Get results
         results = {'RMSE': mean_RMSE,

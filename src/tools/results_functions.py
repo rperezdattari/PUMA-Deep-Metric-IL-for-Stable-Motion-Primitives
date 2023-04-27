@@ -61,7 +61,7 @@ def evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, 
 
     metrics_acc, metrics_stab = evaluator.run(iteration=0, save_path=save_path)
 
-    return metrics_acc, metrics_stab
+    return metrics_acc, metrics_stab, evaluator
 
 
 def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_name, demos_ids, density,
@@ -79,15 +79,15 @@ def evaluate_system_comparison(quanti_eval, quali_eval, models_names, dataset_na
                 saturate = False
             else:
                 saturate = True
-            metrics_acc, metrics_stab = evaluate_system(quanti_eval, quali_eval, model_name, dataset_name, demo_id, density,
-                                                        simulated_trajectory_length, evaluation_samples_length,
-                                                        results_base_directory,
-                                                        fixed_point_iteration_thr=fixed_point_iteration_thr,
-                                                        saturate=saturate)
+            metrics_acc, metrics_stab, evaluator = evaluate_system(quanti_eval, quali_eval, model_name, dataset_name,
+                                                                   demo_id, density, simulated_trajectory_length,
+                                                                   evaluation_samples_length, results_base_directory,
+                                                                   fixed_point_iteration_thr=fixed_point_iteration_thr,
+                                                                   saturate=saturate)
             if quanti_eval:
-                RMSE.append(metrics_acc['RMSE'])
-                DTWD.append(metrics_acc['DTWD'])
-                FD.append(metrics_acc['FD'])
+                RMSE = RMSE + evaluator.RMSE[-1]
+                DTWD = DTWD + evaluator.DTWD[-1]
+                FD = FD + evaluator.FD[-1]
                 n_spurious.append(metrics_stab['n spurious'])
 
         metrics_model = {'RMSE': RMSE,
