@@ -6,7 +6,7 @@ from optuna.trial import TrialState
 import os
 #os.chdir('../results/final/optuna/')
 
-study_name = 'optuna_study_2nd_order_2D_condor_LAIR'
+study_name = 'optuna_study_1st_order_2D_euc_LASA'
 study = optuna.load_study(study_name=study_name, storage='sqlite:///%s.db' % study_name)
 
 pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
