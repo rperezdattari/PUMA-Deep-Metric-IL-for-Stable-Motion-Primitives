@@ -39,7 +39,7 @@ class Params:
     spline_sample_type: str = 'from data'  # resample from spline type, options: from data, from data resample, evenly spaced
     workspace_boundaries_type: str = 'from data'  # options: from data, custom
     workspace_boundaries: str = 'not used'  # list to provide boundaries when workspace_boundaries_type = custom
-    trajectories_resample_length: int = 2000  # amount of points resampled from splines when type spline_sample_type is 'from data resample' or 'evenly spaced'
+    trajectories_resample_length: int = 2000  # amount of points resampled from splines
     state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
     """ Evaluation """

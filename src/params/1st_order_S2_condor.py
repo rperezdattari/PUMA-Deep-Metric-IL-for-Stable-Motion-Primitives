@@ -34,7 +34,7 @@ class Params:
     """ Training """
     train: bool = True  # true when training
     load_model: bool = False  # true to load previously trained model
-    max_iterations: int = 61000  # maximum number of training iterations
+    max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
     workspace_boundaries_type: str = 'custom'  # options: from data, custom

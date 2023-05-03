@@ -17,17 +17,17 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.0002494  # 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0008574  # 0.0001  # AdamW learning rate
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
     triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
-    stabilization_loss_weight: float = 4.96810  # 1  # stability loss weight
-    boundary_loss_weight: float = 1.0670  # 1  # boundary loss weight
-    imitation_window_size: int = 15  # 15  # imitation window size
-    stabilization_window_size: int = 10  # 2  # stability window size
-    triplet_margin: float = 1.227e-05  # 4.523e-9  # 1.25e-4  # triplet loss margin
+    stabilization_loss_weight: float = 3.496  # 1  # stability loss weight
+    boundary_loss_weight: float = 0  # boundary loss weight
+    imitation_window_size: int = 14  # 15  # imitation window size
+    stabilization_window_size: int = 14  # 2  # stability window size
+    triplet_margin: float = 3.0122e-05  # 1.25e-4  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
 
     """ Training """
@@ -51,7 +51,7 @@ class Params:
     diffeo_quali_eval: bool = False  # qualitative evaluation of diffeomorphism mismatch
     ignore_n_spurious: bool = False  # when selecting best model, true to ignore amount of spurious attractors
     fixed_point_iteration_thr = 10  # distance threshold to consider that a point did not reach the goal
-    density: int = 10  # density^workspace_dimension = amount of points sampled from state space for evaluation
+    density: int = 35  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
     show_plot: bool = False  # show quanti eval
