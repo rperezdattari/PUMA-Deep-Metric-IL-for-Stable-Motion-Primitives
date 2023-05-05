@@ -310,12 +310,14 @@ class DataPreprocessor:
         max_velocity = np.max(velocity, axis=(0, 1, 3))
 
         # Compute max acceleration
-        if self.dynamical_system_order == 2:
+        if self.dynamical_system_order == 1:
+            min_acceleration = None  # acceleration not used in first-order systems
+            max_acceleration = None
+        elif self.dynamical_system_order == 2:
             min_acceleration = np.min(acceleration, axis=(0, 1, 3))
             max_acceleration = np.max(acceleration, axis=(0, 1, 3))
         else:
-            min_acceleration = min_velocity * 0  # TODO: remove this eventually, here because cluster weird error
-            max_acceleration = max_velocity * 0
+            raise ValueError('Selected dynamical system order not valid, options: 1, 2.')
 
         # If second order, since the velocity is part of the state, we extend its limits
         if self.dynamical_system_order == 2:

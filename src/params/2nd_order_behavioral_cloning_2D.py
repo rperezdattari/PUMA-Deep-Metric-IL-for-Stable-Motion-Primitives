@@ -7,7 +7,7 @@ class Params:
     dataset_name: str = 'LAIR'  # options: LASA, LAIR, optitrack, interpolation, joint_space
     results_path: str = 'results/2nd_order_behavioral_cloning_2D/'
     multi_motion: bool = False  # true when learning multiple motions together
-    selected_primitives_ids: str = '3'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
+    selected_primitives_ids: str = '8'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 2  # dimensionality of the data
     saturate_out_of_boundaries_transitions: bool = False  # True to enforce positively invariant set
     dynamical_system_order: int = 2  # options: 1, 2
@@ -17,7 +17,7 @@ class Params:
     latent_space_dim: int = 300  # dimensionality latent space
     neurons_hidden_layers: int = 300  # number of neurons per layer
     batch_size: int = 250  # sampling batch size
-    learning_rate: float = 0.0008574  # 0.0001  # AdamW learning rate
+    learning_rate: float = 0.0001964  # 0.0001  # AdamW learning rate
     weight_decay: float = 0.0  # AdamW weight decay
 
     """ Contrastive Imitation """
@@ -25,7 +25,7 @@ class Params:
     imitation_loss_weight: float = 1  # imitation loss weight
     stabilization_loss_weight: float = 0  # stability loss weight
     boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 14  # 15  # imitation window size
+    imitation_window_size: int = 15  # 15  # imitation window size
     stabilization_window_size: int = 14  # 2  # stability window size
     triplet_margin: float = 3.0122e-05  # 1.25e-4  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
@@ -36,10 +36,10 @@ class Params:
     max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
-    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, evenly spaced
+    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, from data resample, evenly spaced
     workspace_boundaries_type: str = 'from data'  # options: from data, custom
     workspace_boundaries: str = 'not used'  # list to provide boundaries when workspace_boundaries_type = custom
-    trajectories_resample_length: int = 2000  # amount of points resampled from splines
+    trajectories_resample_length: int = 2000  # amount of points resampled from splines when type spline_sample_type is 'from data resample' or 'evenly spaced'
     state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
     """ Evaluation """
