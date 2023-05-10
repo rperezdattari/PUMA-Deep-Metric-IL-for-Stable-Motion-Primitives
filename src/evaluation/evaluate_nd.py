@@ -63,10 +63,13 @@ class EvaluateND(Evaluate):
         # Add title of subplots
         fig.suptitle('Dynamical System')
 
+        titles = ['Position: x', 'Position: y', 'Position: z', 'Quaternion: w', 'Quaternion: x', 'Quaternion: y', 'Quaternion: z']
+
         # Plot every joint simulated trajectories
         denorm_visited_states_grid = denormalize_state(sim_results['visited states grid'], self.x_min, self.x_max)
         for i in range(n_joints):
-            axs[i].set_title('Joint' + ' ' + str(i + 1))
+            #axs[i].set_title('Joint' + ' ' + str(i + 1))
+            axs[i].set_title(titles[i])
             axs[i].set_xlabel('time [s]')
             axs[i].set_ylabel('angle [rad]')
             axs[i].grid()
