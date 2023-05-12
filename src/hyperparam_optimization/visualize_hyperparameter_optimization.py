@@ -9,7 +9,7 @@ from scipy.ndimage.filters import gaussian_filter1d
 import os
 #os.chdir('../results/final/optuna/')
 
-study_name = 'optuna_study_2nd_order_behavioral_cloning_2D_LAIR'
+study_name = 'optuna_study_1st_order_S2_LASA'
 study = optuna.load_study(study_name=study_name, storage='sqlite:///%s.db' % study_name)
 
 pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
@@ -28,7 +28,7 @@ for i in range(len(complete_trials)):
     trials_scores.append(summary)
 
 sorted_scores = np.array(trials_scores)[np.array(trials_scores)[:, 1].argsort()]
-top_scores = sorted_scores[:5]
+top_scores = sorted_scores[:10]
 
 for i in range(top_scores.shape[0]):
     trial_id = int(top_scores[i][0])
