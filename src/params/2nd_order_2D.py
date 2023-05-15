@@ -51,7 +51,7 @@ class Params:
     diffeo_quali_eval: bool = False  # qualitative evaluation of diffeomorphism mismatch
     ignore_n_spurious: bool = False  # when selecting best model, true to ignore amount of spurious attractors
     fixed_point_iteration_thr = 10  # distance threshold to consider that a point did not reach the goal
-    density: int = 35  # density^workspace_dimension = amount of points sampled from state space for evaluation
+    density: int = 50  # density^workspace_dimension = amount of points sampled from state space for evaluation
     simulated_trajectory_length: int = 2000  # integration length for evaluation
     evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
     show_plot: bool = False  # show quanti eval
