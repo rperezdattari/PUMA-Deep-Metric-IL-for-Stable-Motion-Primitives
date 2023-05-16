@@ -160,10 +160,55 @@ def plot_accuracy_metrics(models_names, metrics_names, metrics_models, title, re
         palette = sns.color_palette('tab10')
     else:
         palette = colors
+
+    PROPS = {
+        'boxprops': {'edgecolor': 'black'},
+        'medianprops': {'color': 'black'},
+        'whiskerprops': {'color': 'black'},
+        'capprops': {'color': 'black'}
+    }
+
     metrics_plot = sns.boxplot(x='Metric', y='Error (%s)' % unit, hue='Model', data=df, linewidth=3, showfliers=False,
-                               width=0.7, zorder=3, palette=palette)
+                               width=0.7, zorder=3, palette=palette, **PROPS)
     metrics_plot.tick_params(labelsize=10)
     plt.title(title, y=1, fontsize=20)
     plt.tight_layout()
     plt.savefig(results_base_directory + 'results_analysis/box_plot_%s.pdf' % title)
     plt.show()
+
+
+def boundary_evaluation(model_name, dataset_name, demos_ids, density, results_base_directory):
+    results_directory = 'results/final/%s/%s/' % (dataset_name, model_name)
+    results_directory = results_base_directory + results_directory
+
+    # Get parameters
+    Params = getattr(importlib.import_module('params.' + model_name), 'Params')
+    params = Params(results_base_directory)
+
+    # Modify some parameters
+    params.dataset_name = dataset_name
+    params.load_model = True
+    params.save_evaluation = False
+    params.saturate_out_of_boundaries_transitions = False
+    params.show_plot = True
+    params.density = density
+    losses = []
+
+    for demo_id in demos_ids:
+        # Get id
+        params.selected_primitives_ids = str(demo_id)
+        params.results_path = results_directory + str(demo_id) + '/'
+
+        # Initialize framework
+        learner, evaluator, data = initialize_framework(params, model_name, verbose=False)
+
+        # initial states
+        learner.batch_size = density ** params.manifold_dimensions
+        state_sample, primitive_type_sample_gen = learner.space_sample()
+
+        # get cost
+        learner.boundary_loss_weight = 1
+        loss = learner.boundary_constrain(state_sample, primitive_type_sample_gen).cpu().detach().numpy()
+        losses.append(loss)
+
+    return np.array(losses)
