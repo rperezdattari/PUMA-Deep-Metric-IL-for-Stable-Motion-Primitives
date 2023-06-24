@@ -9,7 +9,7 @@ from scipy.ndimage.filters import gaussian_filter1d
 import os
 #os.chdir('../results/final/optuna/')
 
-study_name = 'optuna_study_1st_order_S2_condor_LASA_S2'
+study_name = 'optuna_study_2nd_order_2D_euc_no_bound_LAIR'
 study = optuna.load_study(study_name=study_name, storage='sqlite:///%s.db' % study_name)
 
 pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
@@ -42,8 +42,8 @@ plt.legend()
 plt.show()
 
 # Do the rest of optuna stuff
-best_trial = study.best_trial
-#best_trial = complete_trials[0]
+#best_trial = study.best_trial
+best_trial = complete_trials[76]
 print('Best trial:', best_trial.number)
 
 
