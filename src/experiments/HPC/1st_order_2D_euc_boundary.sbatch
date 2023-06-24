@@ -44,7 +44,7 @@ module load miniconda/3.8
 source activate
 conda activate /tudelft.net/staff-umbrella/condorstorage/software/condor
 
-srun python3 run_optuna.py --params 1st_order_2D_euc_boundary --train-dataset True --results-base-directory /tudelft.net/staff-umbrella/condorstorage/riemannian/
+srun python run_optuna.py --params 2nd_order_2D_euc_boundary --train-dataset True --results-base-directory /tudelft.net/staff-umbrella/condorstorage/riemannian/
 
 # Measure GPU usage of your job (result)
 /usr/bin/nvidia-smi --query-accounted-apps='gpu_utilization,mem_utilization,max_memory_usage,time' --format='csv' | /usr/bin/grep -v -F "$previous"
