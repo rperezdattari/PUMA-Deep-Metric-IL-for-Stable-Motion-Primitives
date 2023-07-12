@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class Params:
     """ General parameters """
     dataset_name: str = 'LAIR'  # options: LASA, LAIR, optitrack, interpolation, joint_space
-    results_path: str = 'results/2nd_order_2D_euc_no_bound/'
+    results_path: str = 'results/2nd_order_2D_euc_boundary/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '3'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 2  # dimensionality of the data

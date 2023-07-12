@@ -83,11 +83,12 @@ class EvaluateND(Evaluate):
             for j in range(self.n_trajectories):
                 if self.primitive_ids[j] == primitive_id:
                     axs[i].plot(time_demonstrations[j], self.demonstrations_eval[j][i], color='black', linewidth=8)
-                    axs[i].scatter(time_demonstrations[j][-1], self.demonstrations_eval[j][i][-1], color='red', edgecolors='black', zorder=10000, s=180)
+                    axs[i].scatter(time_demonstrations[j][-1], self.demonstrations_eval[j][i][-1], color='red',
+                                   edgecolors='black', linewidths=2, zorder=10000, s=220)
 
         for i in range(n_joints):
             for j in range(np.sum(self.primitive_ids == primitive_id)):
-                axs[i].plot(time_simulations, denorm_visited_states_demos[:, j, i], color='red', linestyle='--', linewidth=2)
+                axs[i].plot(time_simulations, denorm_visited_states_demos[:, j, i], color='red', linestyle='-', linewidth=2.0)
 
         fig.tight_layout()
 
