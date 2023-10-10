@@ -1,4 +1,4 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, ABB, ABB_R3S3, poultry
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, ABB, ABB_R3S3, poultry, kuka
 from scipy.spatial.transform import Rotation
 import os
 import pickle
@@ -59,6 +59,8 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = ABB_R3S3
     elif dataset_name == 'poultry':
         dataset_primitives_names = poultry
+    elif dataset_name == 'kuka':
+        dataset_primitives_names = kuka
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -97,6 +99,8 @@ def get_data_loader(dataset_name):
         data_loader = load_ABB_S3R3
     elif dataset_name == 'poultry':
         data_loader = load_poultry
+    elif dataset_name == 'kuka':
+        data_loader = load_kuka
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -251,6 +255,60 @@ def load_ABB_S3R3(dataset_dir, demonstrations_names):
             # dist_end_trajs = np.linalg.norm(prev_quat_traj_end - np.array(quats)[-1])
             # if dist_end_trajs > 0.5:
             #     demo[3:] *= -1
+
+            # Append demo to demo list
+            demos.append(demo)
+            dt.append(data['delta_t'])
+            primitive_id.append(i)
+
+    return demos, primitive_id, dt
+
+
+def load_kuka(dataset_dir, demonstrations_names):
+    from spatialmath import SO3, UnitQuaternion
+    """
+    Loads demonstrations in dictionaries for ABB
+    """
+    demos, primitive_id, dt = [], [], []
+
+    # Iterate in each primitive (multi model learning)
+    for i in range(len(demonstrations_names)):
+        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
+
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
+            with open(filename, 'rb') as file:
+                data = pickle.load(file)
+
+            prev_quat = None
+            quats = []
+            for numpy_rot_mat in data['x_rot']:
+                # Get quatenion array from data
+                quat = UnitQuaternion(SO3(numpy_rot_mat)).A
+
+                # Check if quaternion flip, and flip if necessary
+                if prev_quat is None:
+                    prev_quat = quat
+
+                dist_quats = np.linalg.norm(quat - prev_quat)
+
+                if dist_quats > 0.5:
+                    quat *= -1
+
+                # Append quaternion to list
+                quats.append(quat)
+                prev_quat = quat
+
+            # Set identity quat as goal
+            last_quat = UnitQuaternion(quats[-1])
+            quats = [(UnitQuaternion(quats[i]) / last_quat).A for i in range(len(quats))]
+
+            # Set zero as goal
+            positions = np.array(data['x_pos']) - np.array(data['x_pos'])[-1]
+
+            # Create demo out of positions and quats
+            demo = np.concatenate([positions, quats], axis=1).T
 
             # Append demo to demo list
             demos.append(demo)
