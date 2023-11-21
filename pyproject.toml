@@ -5,7 +5,7 @@ description = ""
 authors = ["Rodrigo Perez Dattari <r.j.perezdattari@tudelft.nl>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.7, <3.10"
 scipy = "^1.6"
 numpy = "^1.19"
 pickle4 = "^0.0.1"
@@ -17,6 +17,8 @@ optuna = "^2.10.0"
 similaritymeasures = "^0.4.4"
 torchvision = "^0.12.0"
 protobuf = "3.20.0"
+plotly = "^5.17.0"
+spatialmath-python = "^1.1.8"
 
 [tool.poetry.dev-dependencies]
 
