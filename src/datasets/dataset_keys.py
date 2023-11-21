@@ -93,7 +93,8 @@ ABB_R3S3 = ['test',
 poultry = ['v1',
            'hammer']
 
-kuka = ['pouring']
+kuka = ['pouring',
+        'pouring_v2']
 
 dataset_keys_dic = {'LASA': LASA,
                     'LAIR': LAIR,

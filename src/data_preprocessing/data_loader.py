@@ -131,7 +131,7 @@ def load_numpy_file(dataset_dir, demonstrations_names):
     """
     Loads demonstrations in numpy files
     """
-    demos, primitive_id = [], []
+    demos, primitive_id, dt = [], [], []
     for i in range(len(demonstrations_names)):
         demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
 
@@ -142,8 +142,8 @@ def load_numpy_file(dataset_dir, demonstrations_names):
                 data = data[0]
             demos.append(data.T)
             primitive_id.append(i)
+            dt.append(np.ones(len(data))*0.03)  # dummy time
 
-    dt = 1
     return demos, primitive_id, dt
 
 

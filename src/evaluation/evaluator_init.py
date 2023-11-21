@@ -18,7 +18,7 @@ def evaluator_init(learner, data, params, verbose=True):
         return Evaluate2DO1(learner, data, params, verbose)
     elif cartesian_space_dim == 2 and params.dynamical_system_order == 2:
         return Evaluate2DO2(learner, data, params, verbose)
-    elif cartesian_space_dim == 3:
+    elif cartesian_space_dim == 3 and params.space == 'sphere':
         return Evaluate3D(learner, data, params, verbose)
     elif cartesian_space_dim == 4 and params.space == 'sphere':
         return Evaluate4DS3(learner, data, params, verbose)

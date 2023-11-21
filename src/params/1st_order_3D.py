@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import numpy as np
 
 
 @dataclass
@@ -12,12 +11,7 @@ class Params:
     manifold_dimensions: int = 3  # dimensionality of the data
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
-
-    """ Latent Dynamical System parameters """
-    adaptive_gains: bool = True  # adaptive gains if true
-    latent_gain_lower_limit: float = 0  # adaptive gains lower limit (always zero in paper)
-    latent_gain_upper_limit: float = 0.0997  # adaptive gains upper limit
-    latent_gain: float = 0.008  # value of gains when fixed
+    space: str = 'euclidean'  # data manifold shape
 
     """ Neural Network """
     latent_space_dim: int = 300  # dimensionality latent space
@@ -27,14 +21,13 @@ class Params:
     weight_decay: float = 0.0001  # AdamW weight decay
 
     """ Contrastive Imitation """
+    triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
     stabilization_loss_weight: float = 0.93  # stability loss weight
-    boundary_loss_weight: float = 0  # boundary loss weight
-    imitation_window_size: int = 15  # imitation window size
-    stabilization_window_size: int = 2  # stability window size
-    stabilization_loss: str = 'contrastive'  # options: contrastive, triplet
-    contrastive_margin: float = 0.0333  # contrastive loss margin
-    triplet_margin: float = 1e-4  # triplet loss margin
+    boundary_loss_weight: float = 0.001 # boundary loss weight
+    imitation_window_size: int = 10  # imitation window size
+    stabilization_window_size: int = 4  # stability window size
+    triplet_margin: float = 3.0122e-05  # triplet loss margin
     interpolation_sigma: float = 0.8  # percentage of points sampled in demonstrations space when multi-model learning
 
     """ Training """
@@ -43,11 +36,9 @@ class Params:
     max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
-    spline_sample_type: str = 'evenly spaced'  # resample from spline type, options: from data, evenly spaced
-    workspace_boundaries_type: str = 'custom'  # options: from data, custom
-    workspace_boundaries: np.ndarray = np.array([[-1.5, 1.5],
-                                                 [0.0, 2.0],
-                                                 [-0.5, 2.0]])  # list to provide boundaries when custom boundaries
+    spline_sample_type: str = 'from data'  # resample from spline type, options: from data, from data resample, evenly spaced
+    workspace_boundaries_type: str = 'from data'  # options: from data, custom
+    workspace_boundaries: str = 'not used'  # list to provide boundaries when workspace_boundaries_type = custom
     trajectories_resample_length: int = 2000  # amount of points resampled from splines
     state_increment: float = 0.3  # when workspace_boundaries_type = from data, percentage to increment state-space size
 
@@ -61,9 +52,9 @@ class Params:
     ignore_n_spurious: bool = False  # when selecting best model, true to ignore amount of spurious attractors
     fixed_point_iteration_thr = 2  # distance threshold to consider that a point did not reach the goal
     density: int = 6  # density^workspace_dimension = amount of points sampled from state space for evaluation
-    simulated_trajectory_length: int = 500  # integration length for evaluation
-    evaluation_samples_length: int = 100  # integration steps skipped in quantitative evaluation for faster evaluation
-    show_plotly: bool = True  # show evaluation during training
+    simulated_trajectory_length: int = 250  # integration length for evaluation
+    evaluation_samples_length: int = 25  # integration steps skipped in quantitative evaluation for faster evaluation
+    show_plotly: bool = False  # show evaluation during training
 
     """ Hyperparameter Optimization """
     gamma_objective = 3.5  # weight for hyperparameter evaluation

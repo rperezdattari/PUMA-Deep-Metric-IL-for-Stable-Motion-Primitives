@@ -8,7 +8,7 @@ class Params:
     dataset_name: str = 'kuka'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space, ABB_R3S3
     results_path: str = 'results/1st_order_R3S3_multi_kuka/'
     multi_motion: bool = True  # true when learning multiple motions together
-    selected_primitives_ids: str = '0'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
+    selected_primitives_ids: str = '1'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 6  # dimensionality of the data manifold
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
@@ -24,8 +24,8 @@ class Params:
     """ Contrastive Imitation """
     triplet_type: str = 'spherical'  # distance metric used in triplet loss
     imitation_loss_weight: float = 1  # imitation loss weight
-    stabilization_loss_weight: float = 1  # stability loss weight
-    boundary_loss_weight: float = 0.5  # boundary loss weight
+    stabilization_loss_weight: float = 0.5  # stability loss weight
+    boundary_loss_weight: float = 0.1  # boundary loss weight
     imitation_window_size: int = 15  # imitation window size
     stabilization_window_size: int = 2  # stability window size
     triplet_margin: float = 1e-8  # 1.25e-4 for triplet  # triplet loss margin
@@ -33,7 +33,7 @@ class Params:
 
     """ Training """
     train: bool = True  # true when training
-    load_model: bool = False  # true to load previously trained model
+    load_model: bool = True  # true to load previously trained model
     max_iterations: int = 41000  # maximum number of training iterations
 
     """ Preprocessing """
