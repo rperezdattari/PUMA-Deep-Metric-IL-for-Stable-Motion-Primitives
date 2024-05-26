@@ -17,7 +17,7 @@ class EvaluateND(Evaluate):
         """
 
         # Get time demonstrations
-        delta_t_history = np.array(self.delta_t_eval)
+        delta_t_history = self.delta_t_eval
         time_demonstrations = self.compute_time(delta_t_history)
 
         # Get time simulated trajectories
