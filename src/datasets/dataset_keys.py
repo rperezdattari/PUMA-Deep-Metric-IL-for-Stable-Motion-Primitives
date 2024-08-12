@@ -69,20 +69,7 @@ LAIR = ['e',
         'triple_loop',
         'two']
 
-# Interpolation dataset
-interpolation = ['interpolation_1',
-                 'interpolation_2',
-                 'interpolation_3']
-
-# Optitrack dataset
-optitrack = ['hammer']
-
-# Joint space dataset
-joint_space = ['cleaning_1',
-               'cleaning_2']
-
 # ABB
-ABB = ['test']
 ABB_R3S3 = ['test',
             'integration_march',
             'tomato_height_1_angle_1',
@@ -90,12 +77,9 @@ ABB_R3S3 = ['test',
             ]
 
 # Poultry
-poultry = ['v1',
-           'hammer']
+hammer = ['hammer']
 
-kuka = ['pouring',
-        'pouring_v2']
 
-dataset_keys_dic = {'LASA': LASA,
-                    'LAIR': LAIR,
-                    'LASA_S2': LASA_S2}
+# kuka
+kuka = ['pick_tomato_31may',
+        'test_15feb']

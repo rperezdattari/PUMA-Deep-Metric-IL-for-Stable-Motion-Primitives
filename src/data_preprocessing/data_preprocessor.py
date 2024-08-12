@@ -34,7 +34,7 @@ class DataPreprocessor:
         Computes relevant features from the raw demonstrations
         """
         # Load demonstrations and associated data
-        loaded_data = load_demonstrations(self.dataset_name, self.selected_primitives_id)
+        loaded_data = load_demonstrations(self.dataset_name, self.selected_primitives_id, self.dim_manifold)
 
         # Get features from demonstrations demonstrations
         features_demos = self.get_features_demos(loaded_data)

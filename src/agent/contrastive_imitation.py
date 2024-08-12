@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from agent.neural_network import NeuralNetwork
-from agent.utils.ranking_losses import TripletLoss, TripletAngleLoss, TripletCosineLoss, SoftTripletLoss
+from agent.utils.ranking_losses import TripletLoss, TripletAngleLoss, TripletAngleLossSquared
 from agent.dynamical_system import DynamicalSystem
 from agent.utils.dynamical_system_operations import normalize_state
 
@@ -69,10 +69,10 @@ class ContrastiveImitation:
             self.triplet_loss = TripletLoss(margin=params.triplet_margin)
         elif params.triplet_type == 'spherical':
             self.triplet_loss = TripletAngleLoss(margin=params.triplet_margin)
+        elif params.triplet_type == 'spherical squared':
+            self.triplet_loss = TripletAngleLossSquared(margin=params.triplet_margin)
         else:
             raise ValueError('triplet type not valid, options: euclidean, spherical.')
-        #self.triplet_loss = TripletCosineLoss(margin=params.triplet_margin)
-        #self.triplet_loss = SoftTripletLoss()
 
         # Initialize Neural Network
         self.model = NeuralNetwork(dim_state=self.dim_state,
@@ -194,7 +194,7 @@ class ContrastiveImitation:
         if self.space == 'sphere':
             return 0
         elif self.space == 'euclidean_sphere':
-            states_boundary = 3 * self.dynamical_system_order
+            states_boundary = 3
         else:
             states_boundary = self.dim_space
 

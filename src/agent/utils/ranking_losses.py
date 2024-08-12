@@ -61,6 +61,23 @@ class TripletAngleLoss(nn.Module):
         distance_negative = great_circle_distance(anchor, negative)
         losses = F.relu(distance_positive + self.margin - distance_negative)
         return losses.mean()
+    
+
+class TripletAngleLossSquared(nn.Module):
+    """
+    Triplet Angle loss squared
+    Triplet loss using squared angle distance as metric
+    """
+
+    def __init__(self, margin):
+        super(TripletAngleLossSquared, self).__init__()
+        self.margin = margin
+
+    def forward(self, anchor, positive, negative):
+        distance_positive = great_circle_distance(anchor, positive)
+        distance_negative = great_circle_distance(anchor, negative)
+        losses = F.relu(distance_positive + self.margin - distance_negative)**2
+        return losses.mean()
 
 
 class TripletCosineLoss(nn.Module):

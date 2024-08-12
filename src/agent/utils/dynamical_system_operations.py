@@ -1,7 +1,9 @@
+import torch
+
+
 """""""""""""""""""""""""""""""""""""""""""""""
         Dynamical System useful function
 """""""""""""""""""""""""""""""""""""""""""""""
-
 
 def normalize_state(state, x_min, x_max):
     """
@@ -32,7 +34,7 @@ def denormalize_derivative(dx_t, max_state_derivative):
     """
     Denormalize state derivative
     """
-    dx_t_denormalized = dx_t * max_state_derivative
+    dx_t_denormalized = dx_t *  max_state_derivative
     return dx_t_denormalized
 
 
@@ -58,3 +60,9 @@ def euler_diff(x_t_next, x_t, delta_t):
     """
     dx = (x_t_next - x_t) / delta_t
     return dx
+
+def batch_dot_product(x, y):
+    """
+    Compute dot product for each pair of vectors in the batch.
+    """
+    return torch.sum(x * y, dim=-1, keepdim=True)

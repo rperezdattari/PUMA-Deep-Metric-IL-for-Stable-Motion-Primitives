@@ -28,7 +28,7 @@ def initialize_framework(params, name_params, verbose=True):
 
     if verbose:
         # Print general configuration information
-        print('\n<<< CONDOR framework: stable and flexible movement primitives >>> \n')
+        print('\n<<< PUMA framework: stable and flexible movement primitives >>> \n')
         print('Parameters:', name_params)
         print('Dynamical System order:', params.dynamical_system_order)
         print('Dataset:', params.dataset_name)

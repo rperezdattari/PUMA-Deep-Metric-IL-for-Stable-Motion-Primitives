@@ -1,5 +1,5 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, optitrack, interpolation, joint_space, ABB, ABB_R3S3, poultry, kuka
-from scipy.spatial.transform import Rotation
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, ABB_R3S3, hammer, kuka
+from spatialmath import SO3, UnitQuaternion
 import os
 import pickle
 import numpy as np
@@ -7,7 +7,7 @@ import scipy.io as sio
 import json
 
 
-def load_demonstrations(dataset_name, selected_primitives_ids):
+def load_demonstrations(dataset_name, selected_primitives_ids, dim_manifold):
     """
     Loads demonstrations
     """
@@ -15,7 +15,7 @@ def load_demonstrations(dataset_name, selected_primitives_ids):
     dataset_primitives_names = get_dataset_primitives_names(dataset_name)
 
     # Get names of selected primitives for training
-    primitives_names, primitives_save_name = select_primitives(dataset_primitives_names, selected_primitives_ids)
+    primitives_names, _ = select_primitives(dataset_primitives_names, selected_primitives_ids)
 
     # Get number of selected primitives
     n_primitives = len(primitives_names)
@@ -24,7 +24,7 @@ def load_demonstrations(dataset_name, selected_primitives_ids):
     dataset_path = 'datasets/' + dataset_name + '/'
 
     # Get data loader
-    data_loader = get_data_loader(dataset_name)
+    data_loader = get_data_loader(dataset_name, dim_manifold)
 
     # Load
     demonstrations, demonstrations_primitive_id, delta_t_eval = data_loader(dataset_path, primitives_names)
@@ -47,18 +47,10 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = LASA_S2
     elif dataset_name == 'LAIR':
         dataset_primitives_names = LAIR
-    elif dataset_name == 'optitrack':
-        dataset_primitives_names = optitrack
-    elif dataset_name == 'interpolation':
-        dataset_primitives_names = interpolation
-    elif dataset_name == 'joint_space':
-        dataset_primitives_names = joint_space
-    elif dataset_name == 'ABB':
-        dataset_primitives_names = ABB
     elif dataset_name == 'ABB_R3S3':
         dataset_primitives_names = ABB_R3S3
-    elif dataset_name == 'poultry':
-        dataset_primitives_names = poultry
+    elif dataset_name == 'hammer':
+        dataset_primitives_names = hammer
     elif dataset_name == 'kuka':
         dataset_primitives_names = kuka
     else:
@@ -81,7 +73,7 @@ def select_primitives(dataset, selected_primitives_ids):
     return selected_primitives_names, selected_primitives_save_name[:-1]
 
 
-def get_data_loader(dataset_name):
+def get_data_loader(dataset_name, dim_manifold):
     """
     Chooses data loader depending on the data type
     """
@@ -93,14 +85,14 @@ def get_data_loader(dataset_name):
         data_loader = load_from_dict
     elif dataset_name == 'LASA_S2':
         data_loader = load_LASA_S2
-    elif dataset_name == 'ABB':
-        data_loader = load_ABB
     elif dataset_name == 'ABB_R3S3':
-        data_loader = load_ABB_S3R3
-    elif dataset_name == 'poultry':
-        data_loader = load_poultry
-    elif dataset_name == 'kuka':
-        data_loader = load_kuka
+        data_loader = load_R3S3
+    elif dataset_name == 'hammer':
+        data_loader = load_hammer
+    elif dataset_name == 'kuka' and dim_manifold == 3:
+        data_loader = load_R3
+    elif dataset_name == 'kuka' and dim_manifold == 6:
+        data_loader = load_R3S3
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -169,103 +161,7 @@ def load_from_dict(dataset_dir, demonstrations_names):
     return demos, primitive_id, dt
 
 
-def load_ABB(dataset_dir, demonstrations_names):
-    """
-    Loads demonstrations in dictionaries for ABB
-    """
-    demos, primitive_id, dt = [], [], []
-
-    # Iterate in each primitive (multi model learning)
-    for i in range(len(demonstrations_names)):
-        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
-
-        # Iterate over each demo in primitive
-        for demo_primitive in demos_primitive:
-            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
-            with open(filename, 'rb') as file:
-                data = pickle.load(file)
-            rot = Rotation.from_matrix(np.array(data['x_rot']))
-            eul = rot.as_euler('xyz') * 30
-            #plot_points_3d(eul)
-            rot = Rotation.from_euler('xyz', eul)
-            quat = rot.as_quat()
-            demos.append(quat.T)
-            dt.append(data['delta_t'])
-            primitive_id.append(i)
-
-    return demos, primitive_id, dt
-
-
-def load_ABB_S3R3(dataset_dir, demonstrations_names):
-    from spatialmath import SO3, UnitQuaternion
-    """
-    Loads demonstrations in dictionaries for ABB
-    """
-    demos, primitive_id, dt = [], [], []
-
-    # Iterate in each primitive (multi model learning)
-    for i in range(len(demonstrations_names)):
-        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
-
-        # Iterate over each demo in primitive
-        for demo_primitive in demos_primitive:
-            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
-            with open(filename, 'rb') as file:
-                data = pickle.load(file)
-
-            prev_quat = None
-            quats = []
-            for numpy_rot_mat in data['x_rot']:
-                # Get quatenion array from data
-                quat = UnitQuaternion(SO3(numpy_rot_mat)).A
-
-                # Check if quaternion flip, and flip if necessary
-                if prev_quat is None:
-                    prev_quat = quat
-
-                dist_quats = np.linalg.norm(quat - prev_quat)
-
-                if dist_quats > 0.5:
-                    quat *= -1
-
-                # Append quaternion to list
-                quats.append(quat)
-                prev_quat = quat
-
-            # Set identity quat as goal
-            last_quat = UnitQuaternion(quats[-1])
-            quats = [(UnitQuaternion(quats[i]) / last_quat).A for i in range(len(quats))]
-            # # Check if quaternion trajectory starts from predefined initial hemisphere
-            # quats = np.array(quats)
-            # if quats[0, -1] > 0:  # if last element of initial angle positive
-            #     quats *= -1  # flip trajectory such that it starts from predefined initial hemisphere
-
-            # Set zero as goal
-            positions = np.array(data['x_pos']) - np.array(data['x_pos'])[-1] + np.array([0, 0, 1])
-
-            # Create demo out of positions and quats
-            demo = np.concatenate([positions, quats], axis=1).T
-
-            # # Flip complete demo if goal is in the other hemisphere
-            # if len(demos) < 1:
-            #     prev_quat_traj_end = np.array(quats)[-1]
-            # else:
-            #     prev_quat_traj_end = demos[-1][3:, -1]
-            #
-            # dist_end_trajs = np.linalg.norm(prev_quat_traj_end - np.array(quats)[-1])
-            # if dist_end_trajs > 0.5:
-            #     demo[3:] *= -1
-
-            # Append demo to demo list
-            demos.append(demo)
-            dt.append(data['delta_t'])
-            primitive_id.append(i)
-
-    return demos, primitive_id, dt
-
-
-def load_kuka(dataset_dir, demonstrations_names):
-    from spatialmath import SO3, UnitQuaternion
+def load_R3S3(dataset_dir, demonstrations_names):
     """
     Loads demonstrations in dictionaries for ABB
     """
@@ -317,6 +213,32 @@ def load_kuka(dataset_dir, demonstrations_names):
 
     return demos, primitive_id, dt
 
+def load_R3(dataset_dir, demonstrations_names):
+    """
+    Loads demonstrations in 3D
+    """
+    demos, primitive_id, dt = [], [], []
+
+    # Iterate in each primitive (multi model learning)
+    for i in range(len(demonstrations_names)):
+        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
+
+        # Iterate over each demo in primitive
+        for demo_primitive in demos_primitive:
+            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
+            with open(filename, 'rb') as file:
+                data = pickle.load(file)
+
+            # Set zero as goal
+            positions = np.array(data['x_pos']) - np.array(data['x_pos'])[-1]
+
+            # Append demo to demo list
+            demos.append(positions.T)
+            dt.append(data['delta_t'])
+            primitive_id.append(i)
+
+    return demos, primitive_id, dt
+
 
 def load_LASA_S2(dataset_path, primitives_names):
     """
@@ -342,14 +264,13 @@ def load_LASA_S2(dataset_path, primitives_names):
     return demos, primitive_id, dt
 
 
-def load_poultry(dataset_path, primitives_names):
+def load_hammer(dataset_path, primitives_names):
     """
     Loads demos for poultry use case
     """
     demos, primitive_id, dt = [], [], []
     for i in range(len(primitives_names)):
         demos_primitive = os.listdir(dataset_path + primitives_names[i])
-        #demos_primitive = [demos_primitive[16]]
         # Iterate over each demo in primitive
         for demo_primitive in demos_primitive:
             path = dataset_path + primitives_names[i] + '/' + demo_primitive
@@ -378,26 +299,6 @@ def load_poultry(dataset_path, primitives_names):
 
             demos.append(data)
             primitive_id.append(i)
-            delta_t = data[0] * 0 + 0.097  # directly gotten from data
+            delta_t = data[0] * 0 + 0.097  # directly obtained from data
             dt.append(delta_t)
     return demos, primitive_id, dt
-
-
-import matplotlib.pyplot as plt
-def plot_points_3d(points):
-    """
-    Plots a batch of 3D points using matplotlib.
-
-    Parameters:
-        points (numpy.ndarray): Array of shape (batch_size, 3) containing the batch of 3D points.
-
-    Returns:
-        None.
-    """
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2])
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    plt.show()
