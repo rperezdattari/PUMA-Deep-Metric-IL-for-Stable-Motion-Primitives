@@ -4,16 +4,11 @@
 Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" (under review).
 For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf). 
 
-## Installation with poetry
+## Installation
 
-You can install the package using poetry.
+You can install the package using pip.
 ```bash
-poetry install
-```
-
-Enter the virtual environment using:
-```bash
-poetry shell
+pip install -r requirements.txt
 ```
 
 Requirements can be found at `pyproject.toml`.
