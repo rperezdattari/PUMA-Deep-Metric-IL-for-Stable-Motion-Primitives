@@ -11,8 +11,6 @@ You can install the package using pip.
 pip install -r requirements.txt
 ```
 
-Requirements can be found at `pyproject.toml`.
-`
 ## Usage
 In the folder `src` run:
 
