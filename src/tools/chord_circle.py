@@ -15,11 +15,7 @@ x = radius * np.cos(theta)
 y = radius * np.sin(theta)
 
 # Calculate distances from north pole (0, radius) to each point
-distances = 2*np.sin(theta/2) #np.sqrt((x - 0)**2 + (y - radius)**2)
-
-# Order distances starting from the North Pole and going around
-# north_pole_index = np.argmin(distances)
-# distances = np.roll(distances, -north_pole_index)
+distances = 2*np.sin(theta/2)
 
 # Plot 1: Circumference with connecting lines
 fig = plt.figure(figsize=(12, 6))
@@ -45,6 +41,7 @@ plt.plot(x[18:], y[18:], 'C1--', label='$d_{\\mathrm{g.c.}}$', linewidth=5, zord
 plt.plot(x, y, label='trajectory', linewidth=10, color='black')
 
 plt.axis('equal')
+
 # Create Line2D instances for the legend
 line1 = mlines.Line2D([], [], color='red', marker='o', markersize=15, linestyle='None',
                        markeredgecolor='black', markeredgewidth=3, label='goal')
@@ -58,6 +55,7 @@ plt.axis('off')  # Removes gridlines, axis labels, and ticks
 
 # Plot 2: Length of lines as function of distance from north pole
 plt.subplot(1, 2, 2)
+
 # Define parameters
 radius = 1
 num_points = 500
@@ -72,24 +70,19 @@ chordal_distances = 2*np.sin(theta_distances/2)
 # spherical distance
 spherical_distance = []
 for theta_i in theta_distances:
-    # if theta_i < 0:
-    #     theta_i *= -1
     if theta_i < np.pi:
         spherical_distance.append(theta_i)
     else:
         spherical_distance.append(2*np.pi - theta_i)
 spherical_distance = np.array(spherical_distance)
-#spherical_distance[spherical_distance > np.pi] = 2*np.pi - spherical_distance[spherical_distance > np.pi]
 
 # Plot 2: Length of lines as function of distance from north pole
-plt.plot(theta, spherical_distance**2, linewidth=6, color='C1')
-plt.plot(theta, chordal_distances**2, linewidth=6, color='C0')
-plt.title('Squared distance to goal', fontsize=40, fontweight="bold")
+plt.plot(theta, spherical_distance, linewidth=6, color='C1')
+plt.plot(theta, chordal_distances, linewidth=6, color='C0')
+plt.title('Distance to goal', fontsize=40, fontweight="bold")
 plt.xlabel('angle [rad]', fontsize=38, fontweight="bold")
-plt.ylabel('$d^{2}$ [dist./radius]$^{2}$', fontsize=38, fontweight="bold")
+plt.ylabel('$d$ [dist./radius]', fontsize=38, fontweight="bold")
 plt.xlim([-2*np.pi, 2*np.pi])
-#plt.ylim([0, 2.1])
-#plt.legend(fontsize=20)
 plt.grid(linestyle='--', linewidth=1)
 
 # Set the linewidth for the x-axis and y-axis

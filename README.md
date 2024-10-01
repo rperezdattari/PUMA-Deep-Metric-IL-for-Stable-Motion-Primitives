@@ -1,8 +1,20 @@
 # Deep Metric Imitation Learning for Stable Motion Primitives
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
 
-Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" (under review).
-For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf). 
+Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" accepted at Advanced Intelligent Systems.
+For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf).
+
+## Teaser: Non-Euclidean and second order learned motions
+<table align="center">
+    <tr>
+        <td style="text-align: center;">
+            <img src="./media/sphere.gif" width="130%" height="50%"/>
+        </td>
+        <td style="text-align: center;">
+            <img src="./media/second_order.gif" width="70%" height="50%"/>
+        </td>
+    </tr>
+</table>
 
 ## Installation
 
@@ -32,4 +44,4 @@ The parameter files required for the argument `params_file_name` can be found in
 
 ## Troubleshooting
 
-If you run into problems of any kind, don't hesitate to [open an issue](https://github.com/rperezdattari/Stable-Motion-Primitives-via-Imitation-and-Contrastive-Learning/issues) on this repository.
+If you run into problems of any kind, don't hesitate to [open an issue](https://github.com/rperezdattari/PUMA-Deep-Metric-IL-for-Stable-Motion-Primitives/issues) on this repository.

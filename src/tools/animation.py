@@ -12,22 +12,22 @@ import matplotlib.pylab as plt
 import matplotlib.gridspec as gridspec
 
 
-def buffered_axis_limits(amin, amax, buffer_factor=1.0):
-    """
-    Increases the range (amin, amax) by buffer_factor on each side
-    and then rounds to precision of 1/10th min or max.
-    Used for generating good plotting limits.
-    For example (0, 100) with buffer factor 1.1 is buffered to (-10, 110)
-    and then rounded to the nearest 10.
-    """
-    diff = amax - amin
-    amin -= (buffer_factor-1)*diff
-    amax += (buffer_factor-1)*diff
-    magnitude = np.floor(np.log10(np.amax(np.abs((amin, amax)) + 1e-100)))
-    precision = np.power(10, magnitude-1)
-    amin = np.floor(amin/precision) * precision
-    amax = np.ceil(amax/precision) * precision
-    return (amin, amax)
+class PointManager:
+    def __init__(self, max_size, D):
+        self.max_size = max_size
+        self.D = D
+        self._xi = np.empty((0, D))       # Initialize empty arrays
+        self._xi_dot = np.empty((0, D))   # Initialize empty arrays
+
+    def append_point(self, xi):
+        # Append the new point to _xi
+        self._xi = np.append(self._xi, xi[0].reshape(1, self.D), axis=0)
+        self._xi_dot = np.append(self._xi_dot, xi[1].reshape(1, self.D), axis=0)
+
+        # Check if the array exceeds max size, if so remove the oldest points
+        if len(self._xi) > self.max_size:
+            self._xi = self._xi[1:]  # Remove the first row (oldest point)
+            self._xi_dot = self._xi_dot[1:]  # Remove the first row (oldest point)
 
 
 class TrajectoryPlotter():
@@ -37,9 +37,9 @@ class TrajectoryPlotter():
         This class expects to be constantly given values to plot in realtime.
         """
         self._fig = fig
-        self._gs = gridspec.GridSpec(1, 1, self._fig)
+        self.save = False
         plt.ion()
-        self._ax = plt.subplot(self._gs[0])
+        self._ax = plt.subplot()
 
         self._labels = labels
         self._init = False
@@ -48,6 +48,7 @@ class TrajectoryPlotter():
         self._labelsize = 16
         self.goal = goal
         self.pause_time = pause_time
+        self.i = 0
 
         plt.rcParams['toolbar'] = 'None'
         for key in plt.rcParams:
@@ -64,16 +65,16 @@ class TrajectoryPlotter():
         """
         Initialize plots based off the length of the data array.
         """
+        max_size = 100  # Maximum number of points
+        D = self.Xinit.shape[-1]  # Number of dimensions
+        self.manager = PointManager(max_size, D)
+        
         self._data_len = data_len
-        self._xi = np.empty((0, data_len))
-        self._xi_dot = np.empty((0, data_len))
-
-        D = self.Xinit.shape[-1]
 
         # Plot it
         self._plots = [np.nan for _ in range(self.Xinit.shape[-1])]
         for i in range(D):
-            self._plots[i] = [self._ax.plot(self.Xinit[0, i], self.Xinit[1, i], 'o', color='C'+str(i), markersize=10)[0]]
+            self._plots[i] = [self._ax.plot(self.Xinit[0, i], self.Xinit[1, i], 'o', color='C'+str(i), markersize=0)[0]]
             self._plots[i] += [self._ax.plot([], [], color='C'+str(i), linewidth=2.5)[0]]
 
         # Show attractor
@@ -100,28 +101,10 @@ class TrajectoryPlotter():
 
         assert xi.shape[1] == self._data_len, f'xi of shape {xi.shape}has to be of shape {self._data_len}'
 
-        self._xi = np.append(self._xi, xi[0].reshape(1, D), axis=0)
-        self._xi_dot = np.append(self._xi_dot, xi[1].reshape(1, D), axis=0)
-
-        # idx=0
-        xlims, ylims = [np.nan for _ in range(len(self._plots))], [np.nan for _ in range(len(self._plots))]
+        self.manager.append_point([xi[0], xi[1]])
 
         for idx, traj_plotter in enumerate(self._plots):
-            traj_plotter[-1].set_data(self._xi[:, idx], self._xi_dot[:, idx]) #
-
-            x_min, x_max = np.amin(self._xi[:, idx]), np.amax(self._xi[:, idx])
-            y_min, y_max = np.amin(self._xi_dot[:, idx]), np.amax(self._xi_dot[:, idx])
-
-            xlims[idx] = (x_min, x_max)
-            ylims[idx] = (y_min, y_max)
-
-            # idx+=1
-
-        x_min = min(0, min([tup[0] for tup in xlims])); y_min = min(0, min([tup[0] for tup in ylims]))
-        x_max = max(0, max([tup[1] for tup in xlims])); y_max = max(0, max([tup[1] for tup in ylims]))
-
-        self._ax.set_xlim(buffered_axis_limits(x_min, x_max, buffer_factor=1.05))
-        self._ax.set_ylim(buffered_axis_limits(y_min, y_max, buffer_factor=1.05))
+            traj_plotter[-1].set_data(self.manager._xi[:, idx], self.manager._xi_dot[:, idx])
 
         self.draw()
         time.sleep(self.pause_time)
@@ -130,6 +113,10 @@ class TrajectoryPlotter():
         for plots in self._plots:
             for each_plot in plots:
                 self._ax.draw_artist(each_plot)
+
+        if self.save:
+            self._fig.savefig('frames/%i.png' % self.i)
+            self.i += 1
 
         self._fig.canvas.flush_events()
 

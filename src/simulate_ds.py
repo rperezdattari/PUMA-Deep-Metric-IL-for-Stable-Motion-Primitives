@@ -13,19 +13,8 @@ results_base_directory = './'
 simulation_length = 2000
 
 # Initial states
-x_t_init = np.array([[0.5, 0.6], [-0.75, 0.9], [0.9, -0.9], [-0.9, -0.9], [0.9, 0.9], [0.9, 0.3], [-0.9, -0.1],
-                     [-0.9, 0.0], [0.4, 0.4], [0.9, -0.1], [-0.9, -0.5], [0.9, -0.5]])
-
-
-# Obstacles
-# obstacles = {'centers': [[0.0, -20]],
-#              'axes': [[5, 5]],
-#              'safety_margins': [[1.0, 1.0]]}
-
-obstacles = {'centers': [[250, 272]],
-             'axes': [[15, 15]],
-             'safety_margins': [[1.0, 1.0]]}
-
+n_points = 30
+x_t_init = np.random.uniform(low=-1, high=1, size=(n_points, 2))
 
 # Load parameters
 Params = getattr(importlib.import_module('params.' + params_name), 'Params')
@@ -58,7 +47,7 @@ x_max = torch.FloatTensor(data['x max']).reshape(1, -1).cuda()
 # Simulate dynamical system and plot
 for i in range(simulation_length):
     # Do transition
-    x_t = dynamical_system.transition(space='task', obstacles=obstacles)['desired state']
+    x_t = dynamical_system.transition(space='task')['desired state']
 
     # Denormalize data
     x_t_denorm = denormalize_state(x_t[:, :params.manifold_dimensions], x_min=x_min, x_max=x_max)
