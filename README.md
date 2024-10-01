@@ -4,8 +4,8 @@
 Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" accepted at Advanced Intelligent Systems.
 For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf).
 
-## Teaser: Non-Euclidean and second order learned motions
-<table align="center" style="border: 0; border-collapse: collapse;">
+## Teaser: Non-Euclidean and second-order learned motions
+<table align="center" border="0">
     <tr>
         <td style="text-align: center;">
             <img src="./media/sphere.gif" width="130%" height="50%"/>
