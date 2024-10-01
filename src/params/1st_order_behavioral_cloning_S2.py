@@ -5,11 +5,12 @@ import numpy as np
 @dataclass
 class Params:
     """ General parameters """
-    dataset_name: str = 'LASA_S2'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space
+    dataset_name: str = 'LASA_S2'  # selects dataset, options: LASA, LAIR, LASA_S2, hammer, ABB_R3S3
     results_path: str = 'results/1st_order_behavioral_cloning_S2/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '20'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 2  # dimensionality of the data manifold
+    ambient_space_dimension: int = 2  # dimensionality of the ambient space
     saturate_out_of_boundaries_transitions: bool = False  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
     space_type: str = 'sphere'  # data manifold shape

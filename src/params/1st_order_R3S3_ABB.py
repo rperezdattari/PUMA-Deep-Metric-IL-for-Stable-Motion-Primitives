@@ -5,11 +5,12 @@ import numpy as np
 @dataclass
 class Params:
     """ General parameters """
-    dataset_name: str = 'ABB_R3S3'  # selects dataset, options: LASA, LAIR, optitrack, interpolation, joint_space, ABB_R3S3
+    dataset_name: str = 'ABB_R3S3'  # selects dataset, options: LASA, LAIR, LASA_S2, hammer, ABB_R3S3
     results_path: str = 'results/1st_order_R3S3_ABB/'
     multi_motion: bool = False  # true when learning multiple motions together
     selected_primitives_ids: str = '2'  # id number from dataset_keys.py, e.g., '2' or '4,0,6'
     manifold_dimensions: int = 6  # dimensionality of the data manifold
+    ambient_space_dimension: int = 7  # dimensionality of the ambient space
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
     space_type: str = 'euclidean_sphere'  # data manifold shape

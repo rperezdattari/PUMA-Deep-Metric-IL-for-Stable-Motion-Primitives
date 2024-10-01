@@ -1,24 +1,24 @@
-from agent.utils.dynamical_system_operations import batch_dot_product, denormalize_derivative, euler_integration, normalize_state, denormalize_state, get_derivative_normalized_state
+from agent.utils.dynamical_system_operations import denormalize_derivative, euler_integration, normalize_state, denormalize_state, get_derivative_normalized_state, project_to_manifold, euler_non_euclidean_1st_order, euler_non_euclidean_2nd_order
 import torch
 import numpy as np
 
 
 class DynamicalSystem():
     """
-    Dynamical System that uses Neural Network trained with Contrastive Imitation
+    Dynamical System that uses Neural Network trained with PUMA
     """
-    def __init__(self, x_init, space, order, min_state_derivative, max_state_derivative, saturate_transition, primitive_type,
-                 model, dim_state, delta_t, x_min, x_max, radius):
+    def __init__(self, x_init, space_type, order, min_state_derivative, max_state_derivative, saturate_transition, primitive_type,
+                 model, dim_state, delta_t, x_min, x_max):
         # Initialize NN model
         self.model = model
 
         # Initialize parameters
-        self.space = space
+        self.space_type = space_type
         self.order = order
         self.saturate_transition = saturate_transition
         self.primitive_type = primitive_type
         self.dim_state = dim_state
-        self.dim_position = dim_state // order
+        self.dim_position = dim_state // order  # same as ambient space
         self.min_vel = min_state_derivative[0]
         self.max_vel = max_state_derivative[0]
         self.max_vel_norm = torch.max(-self.min_vel, self.max_vel)  # axes are treated independently
@@ -29,27 +29,14 @@ class DynamicalSystem():
         self.delta_t = delta_t
         self.x_min = np.array(x_min)
         self.x_max = np.array(x_max)
-        self.radius = radius
         self.batch_size = x_init.shape[0]
 
-        # Project points to sphere surface
-        if self.space == 'sphere':
-            x_init = self.map_points_to_sphere(x_init)
-        elif self.space == 'euclidean_sphere':
-            projected_points = self.map_points_to_sphere(x_init[:, 3:self.dim_position])
-            x_init = torch.cat([x_init[:, :3], projected_points, x_init[:, self.dim_position:]], dim=1)  # pytorch doesn't like inplace operations
+        # Project state to valid manifold
+        x_init = project_to_manifold(x_init, space_type)
 
         # Init dynamical system state
         self.x_t_d = x_init
         self.y_t = self.model.encoder(x_init, self.primitive_type)
-
-    def map_points_to_sphere(self, x_t, radius=1):
-        """
-        Projects points to sphere surface
-        """
-        norm = torch.linalg.norm(x_t, dim=1).reshape(-1, 1)
-        x_t = (radius / norm) * x_t
-        return x_t
 
     def map_to_derivative(self, y_t):
         """
@@ -68,84 +55,27 @@ class DynamicalSystem():
 
         return dx_t_d
 
-    def project_point_onto_plane(self, p, n, r=0):
-        """
-        Projects a point p onto a plane defined by point r and normal vector n in R^{n+1}.
-
-        Args:
-        p (torch.Tensor): The point to project, shape (n+1,)
-        r (torch.Tensor): A point on the plane, shape (n+1,)
-        n (torch.Tensor): The normal vector of the plane, shape (n+1,)
-
-        Returns:
-        torch.Tensor: The projection of p onto the plane.
-        """
-
-        # Compute the vector from r to p
-        v = p - r
-
-        # Calculate the dot product of v and n
-        dot_v_n = batch_dot_product(v, n)
-
-        # Calculate the dot product of n with itself
-        dot_n_n = batch_dot_product(n, n)
-
-        # Calculate the projection of v onto n
-        proj_v_onto_n = (dot_v_n / dot_n_n) * n
-
-        # Calculate the projection of p onto the plane
-        p_plane = p - proj_v_onto_n
-
-        return p_plane
-
-    def exp_map_sphere(self, p, v):
-        v_norm = v.norm(dim=1, keepdim=True)
-        mapped_point = torch.cos(v_norm) * p + torch.sin(v_norm) * (v / v_norm)
-        return mapped_point
-
-    def integrate_non_euclidean_1st_order(self, x_t, vel_t_d):
-        # Project velocity to tangent space
-        vel_t_d = self.project_point_onto_plane(vel_t_d, x_t)
-
-        # Compute exponential map
-        delta_x_d_tangent = vel_t_d * self.delta_t
-        x_t_d = self.exp_map_sphere(x_t, delta_x_d_tangent)
-        return x_t_d, vel_t_d
-
-    def integrate_non_euclidean_2nd_order(self, x_t, vel_t, acc_t_d):
-        # Project velocity and acceleration to tangent space
-        vel_t = self.project_point_onto_plane(vel_t, x_t)  # just in case, velocity should already be tangent
-        acc_t_d = self.project_point_onto_plane(acc_t_d, x_t)
-
-        # Integrate acc in tangent space to velocity in tangent space
-        vel_t_d = euler_integration(vel_t, acc_t_d, self.delta_t)
-
-        # Compute exponential map
-        delta_x_d_tangent = vel_t_d * self.delta_t
-        x_t_d = self.exp_map_sphere(x_t, delta_x_d_tangent)
-        return x_t_d, vel_t_d, acc_t_d
-
     def integrate_1st_order(self, x_t, vel_t_d):
         """
         Saturates and integrates state derivative for first-order systems
         """
         # Clip position (through the velocity)
-        if self.saturate_transition and self.space == 'euclidean':
+        if self.saturate_transition and self.space_type == 'euclidean':
             max_vel_t_d = (1 - x_t) / self.delta_t
             min_vel_t_d = (-1 - x_t) / self.delta_t
             vel_t_d = torch.clamp(vel_t_d, min_vel_t_d, max_vel_t_d)
 
         # Integrate
-        if self.space == 'euclidean':
+        if self.space_type == 'euclidean':
             x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
-        elif self.space == 'sphere':
-            x_t_d, vel_t_d = self.integrate_non_euclidean_1st_order(x_t, vel_t_d)
-        elif self.space == 'euclidean_sphere':
+        elif self.space_type == 'sphere':
+            x_t_d, vel_t_d = euler_non_euclidean_1st_order(x_t, vel_t_d, self.delta_t)
+        elif self.space_type == 'euclidean_sphere':
             # Integrate euclidean
             x_t_d_trans = euler_integration(x_t[:, :3], vel_t_d[:, :3], self.delta_t)
 
             # Integrate non-euclidean
-            x_t_d_rot, vel_t_d_rot = self.integrate_non_euclidean_1st_order(x_t[:, 3:], vel_t_d[:, 3:])
+            x_t_d_rot, vel_t_d_rot = euler_non_euclidean_1st_order(x_t[:, 3:], vel_t_d[:, 3:], self.delta_t)
 
             # Put together
             x_t_d = torch.cat([x_t_d_trans, x_t_d_rot], dim=1)
@@ -168,7 +98,7 @@ class DynamicalSystem():
         vel_t = denormalize_state(x_t[:, self.dim_position:], self.min_vel, self.max_vel)
 
         # Clip position and velocity (through the acceleration)
-        if self.saturate_transition and self.space == 'euclidean':
+        if self.saturate_transition and self.space_type == 'euclidean':
             # Position
             max_acc_t_d = (1 - pos_t - vel_t * self.delta_t) / self.delta_t**2
             min_acc_t_d = (-1 - pos_t - vel_t * self.delta_t) / self.delta_t**2
@@ -180,18 +110,18 @@ class DynamicalSystem():
             acc_t_d = torch.clamp(acc_t_d, min_acc_t_d, max_acc_t_d)
 
         # Integrate
-        if self.space == 'euclidean':
+        if self.space_type == 'euclidean':
             vel_t_d = euler_integration(vel_t, acc_t_d, self.delta_t)
             pos_t_d = euler_integration(pos_t, vel_t_d, self.delta_t)
-        elif self.space == 'sphere':
-            pos_t_d, vel_t_d, acc_t_d = self.integrate_non_euclidean_2nd_order(pos_t, vel_t, acc_t_d)
-        elif self.space == 'euclidean_sphere':
+        elif self.space_type == 'sphere':
+            pos_t_d, vel_t_d, acc_t_d = euler_non_euclidean_2nd_order(pos_t, vel_t, acc_t_d, self.delta_t)
+        elif self.space_type == 'euclidean_sphere':
             # Integrate euclidean
             vel_t_d_trans = euler_integration(vel_t[:, :3], acc_t_d[:, :3], self.delta_t)
             pos_t_d_trans = euler_integration(pos_t[:, :3], vel_t_d_trans[:, :3], self.delta_t)
 
             # Integrate non-euclidean
-            pos_t_d_rot, vel_t_d_rot, acc_t_d_rot = self.integrate_non_euclidean_2nd_order(pos_t[:, 3:], vel_t[:, 3:], acc_t_d[:, 3:])
+            pos_t_d_rot, vel_t_d_rot, acc_t_d_rot = euler_non_euclidean_2nd_order(pos_t[:, 3:], vel_t[:, 3:], acc_t_d[:, 3:], self.delta_t)
 
             # Put together
             pos_t_d = torch.cat([pos_t_d_trans, pos_t_d_rot], dim=1)

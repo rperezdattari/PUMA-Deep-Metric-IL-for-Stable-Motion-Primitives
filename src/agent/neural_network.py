@@ -1,6 +1,4 @@
 import torch
-#torch.autograd.set_detect_anomaly(True)
-#torch.manual_seed(0)
 import numpy as np
 
 
@@ -22,7 +20,6 @@ class NeuralNetwork(torch.nn.Module):
 
         # Select activation function
         self.activation = torch.nn.GELU()
-        self.sigmoid = torch.nn.Sigmoid()
 
         # Initialize goals list
         self.goals_latent_space = list(np.zeros(n_primitives))
@@ -51,20 +48,12 @@ class NeuralNetwork(torch.nn.Module):
         self.norm_de_dx2 = torch.nn.LayerNorm(neurons_hidden_layers)
         self.decoder3_dx = torch.nn.Linear(neurons_hidden_layers, n_output)
 
-        # Latent space TODO: remove this eventually
-        self.gain_nn_1 = torch.nn.Linear(latent_input_size, self.latent_space_dim)
-
-        self.norm_latent_gain_input = torch.nn.LayerNorm(latent_input_size)
-        self.norm_gain_1 = torch.nn.LayerNorm(self.latent_space_dim)
-        self.gain_nn_2 = torch.nn.Linear(self.latent_space_dim, latent_input_size)
-
+        # Initialize normalization latent space before feeding it to phi
         self.norm_de_dx0 = []
         for i in range(self.dynamical_system_order):
             self.norm_de_dx0.append(torch.nn.LayerNorm(self.latent_space_dim))
 
         self.norm_de_dx0 = torch.nn.ModuleList(self.norm_de_dx0)
-        self.norm_de_dx0_0 = torch.nn.LayerNorm(self.latent_space_dim)
-        self.norm_de_dx0_1 = torch.nn.LayerNorm(self.latent_space_dim)
 
     def update_goals_latent_space(self, goals):
         """
