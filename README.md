@@ -5,16 +5,10 @@ Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion P
 For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf).
 
 ## Teaser: Non-Euclidean and second-order learned motions
-<table align="center" border="0">
-    <tr>
-        <td style="text-align: center;">
-            <img src="./media/sphere.gif" width="130%" height="50%"/>
-        </td>
-        <td style="text-align: center;">
-            <img src="./media/second_order.gif" width="70%" height="50%"/>
-        </td>
-    </tr>
-</table>
+<div align="center">
+    <img src="./media/sphere.gif" width="45%" height="auto" style="display:inline-block;"/>
+    <img src="./media/second_order.gif" width="54%" height="auto" style="display:inline-block;"/>
+</div>
 
 ## Installation
 
