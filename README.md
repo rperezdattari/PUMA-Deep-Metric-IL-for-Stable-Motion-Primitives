@@ -1,4 +1,4 @@
-# Deep Metric Imitation Learning for Stable Motion Primitives
+# PUMA: Deep Metric Imitation Learning for Stable Motion Primitives
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
 
 Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" accepted at Advanced Intelligent Systems.
