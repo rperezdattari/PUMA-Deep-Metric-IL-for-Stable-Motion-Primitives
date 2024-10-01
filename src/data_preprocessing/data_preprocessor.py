@@ -13,16 +13,14 @@ class DataPreprocessor:
         self.state_increment = params.state_increment
         self.dim_manifold = params.manifold_dimensions
         self.dynamical_system_order = params.dynamical_system_order
-        self.dim_space = params.manifold_dimensions
-        if params.space == 'sphere' or params.space == 'euclidean_sphere':
-            self.dim_space += 1
-        self.dim_state = self.dim_space * params.dynamical_system_order
+        self.dim_ambient_space = params.ambient_space_dimension
+        self.dim_state = self.dim_ambient_space * params.dynamical_system_order
         self.workspace_boundaries_type = params.workspace_boundaries_type
         self.workspace_boundaries = np.array(params.workspace_boundaries)
         self.eval_length = params.evaluation_samples_length
         self.dataset_name = params.dataset_name
         self.selected_primitives_id = params.selected_primitives_ids
-        self.space = params.space
+        self.space_type = params.space_type
         self.spline_sample_type = params.spline_sample_type
 
         self.delta_t = 1  # this value is for learning, so it can be anything
@@ -86,7 +84,7 @@ class DataPreprocessor:
                           'eval indexes': eval_indexes,
                           'n demonstrations': n_trajectories}
 
-        if self.space == 'sphere':
+        if self.space_type == 'sphere':
             # Get radius sphere
             radius = self.get_radius_sphere(demonstrations_raw, x_min, x_max)
             features_demos.update({'radius': radius})
@@ -250,7 +248,7 @@ class DataPreprocessor:
 
             # Create input for spline: demonstrations and corresponding phases
             spline_input = []
-            for i in range(self.dim_space):
+            for i in range(self.dim_ambient_space):
                 spline_input.append(demo_norm[:, i])
             spline_input.append(curve_phases)
             spline_input.append(delta_phases)
@@ -271,7 +269,7 @@ class DataPreprocessor:
             for _ in range(self.imitation_window_size + (self.dynamical_system_order - 1)):
                 # Compute demo positions based on current phase value
                 spline_values = splev(u, spline_parameters)
-                position_window = spline_values[:self.dim_space]
+                position_window = spline_values[:self.dim_ambient_space]
 
                 # Append position to window trajectory
                 window.append(position_window)

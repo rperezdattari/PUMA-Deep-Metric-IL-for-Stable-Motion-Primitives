@@ -16,10 +16,8 @@ class Evaluate():
 
         # Params file parameters
         self.fixed_point_iteration_thr = params.fixed_point_iteration_thr
-        self.dim_space = params.manifold_dimensions
-        if params.space == 'sphere' or params.space == 'euclidean_sphere':
-            self.dim_space += 1
-        self.dim_state = self.dim_space * params.dynamical_system_order
+        self.dim_ambient_space = params.ambient_space_dimension
+        self.dim_state = self.dim_ambient_space * params.dynamical_system_order
         self.dim_manifold = params.manifold_dimensions
         self.ignore_n_spurious = params.ignore_n_spurious
         self.multi_motion = params.multi_motion
@@ -31,7 +29,7 @@ class Evaluate():
         self.density = params.density
         self.simulated_trajectory_length = params.simulated_trajectory_length
         self.dynamical_system_order = params.dynamical_system_order
-        self.space = params.space
+        self.space_type = params.space_type
         self.skip_stability_evaluation = params.stabilization_loss_weight == 0  # for behavioral cloning
 
         # Parameters data processor
@@ -46,7 +44,7 @@ class Evaluate():
         self.demonstrations_eval = data['demonstrations raw']
         self.x_min = np.array(data['x min'])
         self.x_max = np.array(data['x max'])
-        if self.space == 'sphere':
+        if self.space_type == 'sphere':
             self.radius = data['radius']
 
         # Variables
@@ -61,7 +59,7 @@ class Evaluate():
         Samples initial states from a grid in the state space
         """
         # If data in sphere, map sampled points to cartesian coordinates
-        if self.space == 'sphere':
+        if self.space_type == 'sphere':
             if self.dim_manifold == 2:
                 theta, phi = np.linspace(0, np.pi, self.density), np.linspace(0, 2 * np.pi, self.density)
                 THETA, PHI = np.meshgrid(theta, phi)
@@ -81,7 +79,7 @@ class Evaluate():
                 grid = rot.as_quat().T
             else:
                 raise NameError('Dimension manifold too large, not implemented.')
-        elif self.space == 'euclidean_sphere':
+        elif self.space_type == 'euclidean_sphere':
             points_sphere = np.random.uniform(low=-1, high=1, size=(self.density ** self.dim_manifold, self.dim_manifold))
             rot = Rotation.from_euler('xyz', points_sphere[:, 3:] * np.pi)
             quat = rot.as_quat()
@@ -95,14 +93,14 @@ class Evaluate():
 
         # Transform grid into tensor that pytorch can use
         initial_positions_grid = torch.empty(0)
-        for i in range(self.dim_space):
+        for i in range(self.dim_ambient_space):
             initial_positions_grid = torch.cat([initial_positions_grid,
                                                 torch.from_numpy(grid[i].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_grid = initial_positions_grid.cuda()
 
         # Get initial derivatives and append to initial states (for second order systems)
-        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], self.dim_state - self.dim_space]).cuda()
+        initial_derivatives_grid = torch.zeros([initial_positions_grid.shape[0], self.dim_state - self.dim_ambient_space]).cuda()
 
         # Get initial states
         initial_states_grid = torch.cat([initial_positions_grid, initial_derivatives_grid], dim=1)
@@ -117,14 +115,14 @@ class Evaluate():
 
         # Get initial positions
         initial_positions_demos = torch.empty(0)
-        for i in range(self.dim_space):
+        for i in range(self.dim_ambient_space):
             initial_positions_demos = torch.cat([initial_positions_demos,
                                                  torch.from_numpy(demos[:, 0, i, 0].reshape(-1, 1)).float()], dim=1)
 
         initial_positions_demos = initial_positions_demos.cuda()
 
         # Get initial derivatives and append to initial states (second order systems)
-        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], self.dim_state - self.dim_space]).cuda()
+        initial_derivatives_demos = torch.zeros([initial_positions_demos.shape[0], self.dim_state - self.dim_ambient_space]).cuda()
 
         # Get initial states
         initial_states_demos = torch.cat([initial_positions_demos, initial_derivatives_demos], dim=1)
@@ -225,7 +223,7 @@ class Evaluate():
         """
 
         # Denormalize and preprocess trajectories
-        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_space], self.x_min, self.x_max)
+        sim_trajectories = denormalize_state(visited_states[:, :, :self.dim_ambient_space], self.x_min, self.x_max)
         demos = self.preprocess_demonstrations_eval(demonstrations_eval, visited_states.shape[1],
                                                     max_trajectory_length)
 
@@ -265,11 +263,11 @@ class Evaluate():
         """
 
         # Initialize padded demos
-        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_space])
+        demos_padded = np.empty([max_trajectory_length, n_trajectories, self.dim_ambient_space])
 
         # Add zeros to each trajectory such that they all have the same length as the longest one
         for i in range(n_trajectories):
-            for j in range(self.dim_space):
+            for j in range(self.dim_ambient_space):
                 demonstrations_eval_i_j = demonstrations_eval[i][j]
                 length_diff = max_trajectory_length - len(demonstrations_eval_i_j)
                 demonstrations_eval_i_j = np.append(demonstrations_eval_i_j, np.zeros(length_diff))
@@ -349,7 +347,7 @@ class Evaluate():
             sim_results = self.simulate_system(primitive_id)
 
             # Get last point trajectories grid
-            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_space], self.x_min, self.x_max)
+            attractor = denormalize_state(sim_results['visited states grid'][-1, :, :self.dim_ambient_space], self.x_min, self.x_max)
 
             if self.quanti_eval:
                 if primitive_id == 0:  # TODO: ugly fix for multiple models, fix!

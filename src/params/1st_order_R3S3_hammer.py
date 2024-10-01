@@ -12,7 +12,7 @@ class Params:
     manifold_dimensions: int = 6  # dimensionality of the data manifold
     saturate_out_of_boundaries_transitions: bool = True  # True to enforce positively invariant set
     dynamical_system_order: int = 1  # options: 1, 2
-    space: str = 'euclidean_sphere'  # data manifold shape
+    space_type: str = 'euclidean_sphere'  # data manifold shape
 
     """ Neural Network """
     latent_space_dim: int = 300  # dimensionality latent space

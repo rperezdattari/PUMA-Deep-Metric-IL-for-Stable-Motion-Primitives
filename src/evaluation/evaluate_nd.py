@@ -66,7 +66,7 @@ class EvaluateND(Evaluate):
         titles = ['Position: x', 'Position: y', 'Position: z', 'Quaternion: w', 'Quaternion: x', 'Quaternion: y', 'Quaternion: z']
 
         # Plot every joint simulated trajectories
-        denorm_visited_states_grid = denormalize_state(sim_results['visited states grid'][:, :, :self.dim_space], self.x_min, self.x_max)
+        denorm_visited_states_grid = denormalize_state(sim_results['visited states grid'][:, :, :self.dim_ambient_space], self.x_min, self.x_max)
         for i in range(n_joints):
             #axs[i].set_title('Joint' + ' ' + str(i + 1))
             axs[i].set_title(titles[i])
@@ -78,7 +78,7 @@ class EvaluateND(Evaluate):
                         alpha=0.15)
 
         # Plot every joint demonstrations
-        denorm_visited_states_demos = denormalize_state(sim_results['visited states demos'][:, :, :self.dim_space], self.x_min, self.x_max)
+        denorm_visited_states_demos = denormalize_state(sim_results['visited states demos'][:, :, :self.dim_ambient_space], self.x_min, self.x_max)
         for i in range(n_joints):
             for j in range(self.n_trajectories):
                 if self.primitive_ids[j] == primitive_id:
