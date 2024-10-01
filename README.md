@@ -4,6 +4,17 @@
 Code accompanying the paper: "Deep Metric Imitation Learning for Stable Motion Primitives" accepted at Advanced Intelligent Systems.
 For details, please refer to [paper](https://arxiv.org/pdf/2310.12831.pdf).
 
+The current version of the paper can be cited using the following reference:
+```bibtex
+@article{PerezDattari2024AISY,
+  author  = {P\'{e}rez-Dattari, Rodrigo AND Della Santina, Cosimo AND Kober, Jens},
+  journal = {Advanced Intelligent Systems},
+  title   = {PUMA: Deep Metric Imitation Learning for Stable Motion Primitives},
+  year    = {2024},
+  note    = {Accepted},
+}
+```
+
 ## Teaser: Non-Euclidean and second-order learned motions
 <div align="center">
     <img src="./media/sphere.gif" width="45%" height="auto" style="display:inline-block;"/>
