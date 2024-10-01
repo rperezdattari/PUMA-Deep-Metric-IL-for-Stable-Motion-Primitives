@@ -1,4 +1,4 @@
-from agent.utils.dynamical_system_operations import denormalize_derivative, euler_integration, normalize_state, denormalize_state, get_derivative_normalized_state, project_to_manifold, euler_non_euclidean_1st_order, euler_non_euclidean_2nd_order
+from agent.utils.dynamical_system_operations import denormalize_derivative, euler_integration, normalize_state, denormalize_state, get_derivative_normalized_state, project_to_manifold, euler_non_euclidean_1st_order, euler_non_euclidean_2nd_order, map_points_to_sphere
 import torch
 import numpy as np
 
@@ -30,6 +30,7 @@ class DynamicalSystem():
         self.x_min = np.array(x_min)
         self.x_max = np.array(x_max)
         self.batch_size = x_init.shape[0]
+        self.use_exponential_map = True  # selects legacy code if False, for paper reproducibility (very similar results anyways). Only valid for 1st order systems
 
         # Project state to valid manifold
         x_init = project_to_manifold(x_init, space_type)
@@ -71,19 +72,21 @@ class DynamicalSystem():
         elif self.space_type == 'sphere':
             x_t_d, vel_t_d = euler_non_euclidean_1st_order(x_t, vel_t_d, self.delta_t)
         elif self.space_type == 'euclidean_sphere':
-            # Integrate euclidean
-            x_t_d_trans = euler_integration(x_t[:, :3], vel_t_d[:, :3], self.delta_t)
+            if self.use_exponential_map:
+                # Integrate euclidean
+                x_t_d_trans = euler_integration(x_t[:, :3], vel_t_d[:, :3], self.delta_t)
 
-            # Integrate non-euclidean
-            x_t_d_rot, vel_t_d_rot = euler_non_euclidean_1st_order(x_t[:, 3:], vel_t_d[:, 3:], self.delta_t)
+                # Integrate non-euclidean
+                x_t_d_rot, vel_t_d_rot = euler_non_euclidean_1st_order(x_t[:, 3:], vel_t_d[:, 3:], self.delta_t)
 
-            # Put together
-            x_t_d = torch.cat([x_t_d_trans, x_t_d_rot], dim=1)
-            vel_t_d = torch.cat([vel_t_d[:, :3], vel_t_d_rot], dim=1)
-
-            # x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
-            # projected_points = self.map_points_to_sphere(x_t_d[:, 3:])
-            # x_t_d = torch.cat([x_t_d[:, :3], projected_points], dim=1)  # pytorch doesn't like inplace operations
+                # Put together
+                x_t_d = torch.cat([x_t_d_trans, x_t_d_rot], dim=1)
+                vel_t_d = torch.cat([vel_t_d[:, :3], vel_t_d_rot], dim=1)
+            else:
+                # Integrate and map to sphere by renormalizing quaternion     
+                x_t_d = euler_integration(x_t, vel_t_d, self.delta_t)
+                projected_points = map_points_to_sphere(x_t_d[:, 3:])
+                x_t_d = torch.cat([x_t_d[:, :3], projected_points], dim=1)  # pytorch doesn't like inplace operations
         else:
             raise ValueError('Selected space not valid, options: euclidean, sphere and euclidean_sphere.')
 
