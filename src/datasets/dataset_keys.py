@@ -76,10 +76,5 @@ ABB_R3S3 = ['test',
             'tomato_height_2_angle_1'
             ]
 
-# Poultry
+# Hammer
 hammer = ['hammer']
-
-
-# kuka
-kuka = ['pick_tomato_31may',
-        'test_15feb']

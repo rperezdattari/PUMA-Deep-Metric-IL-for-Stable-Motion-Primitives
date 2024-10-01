@@ -2,7 +2,7 @@ import os
 import time
 from dataclasses import fields
 from data_preprocessing.data_preprocessor import DataPreprocessor
-from agent.contrastive_imitation import ContrastiveImitation
+from agent.stable_imitation import StableImitation
 from evaluation.evaluator_init import evaluator_init
 
 
@@ -21,7 +21,7 @@ def initialize_framework(params, name_params, verbose=True):
     data = DataPreprocessor(params=params, verbose=verbose).run()
 
     # Initialize learning agent
-    learner = ContrastiveImitation(data=data, params=params)
+    learner = StableImitation(data=data, params=params)
 
     # Initialize learning process evaluation
     evaluator = evaluator_init(learner=learner, data=data, params=params, verbose=verbose)

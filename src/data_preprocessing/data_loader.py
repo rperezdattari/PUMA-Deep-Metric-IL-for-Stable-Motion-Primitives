@@ -1,4 +1,4 @@
-from datasets.dataset_keys import LASA, LASA_S2, LAIR, ABB_R3S3, hammer, kuka
+from datasets.dataset_keys import LASA, LASA_S2, LAIR, ABB_R3S3, hammer
 from spatialmath import SO3, UnitQuaternion
 import os
 import pickle
@@ -51,8 +51,6 @@ def get_dataset_primitives_names(dataset_name):
         dataset_primitives_names = ABB_R3S3
     elif dataset_name == 'hammer':
         dataset_primitives_names = hammer
-    elif dataset_name == 'kuka':
-        dataset_primitives_names = kuka
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -89,10 +87,6 @@ def get_data_loader(dataset_name, dim_manifold):
         data_loader = load_R3S3
     elif dataset_name == 'hammer':
         data_loader = load_hammer
-    elif dataset_name == 'kuka' and dim_manifold == 3:
-        data_loader = load_R3
-    elif dataset_name == 'kuka' and dim_manifold == 6:
-        data_loader = load_R3S3
     else:
         raise NameError('Dataset %s does not exist' % dataset_name)
 
@@ -213,32 +207,6 @@ def load_R3S3(dataset_dir, demonstrations_names):
 
     return demos, primitive_id, dt
 
-def load_R3(dataset_dir, demonstrations_names):
-    """
-    Loads demonstrations in 3D
-    """
-    demos, primitive_id, dt = [], [], []
-
-    # Iterate in each primitive (multi model learning)
-    for i in range(len(demonstrations_names)):
-        demos_primitive = os.listdir(dataset_dir + demonstrations_names[i])
-
-        # Iterate over each demo in primitive
-        for demo_primitive in demos_primitive:
-            filename = dataset_dir + demonstrations_names[i] + '/' + demo_primitive
-            with open(filename, 'rb') as file:
-                data = pickle.load(file)
-
-            # Set zero as goal
-            positions = np.array(data['x_pos']) - np.array(data['x_pos'])[-1]
-
-            # Append demo to demo list
-            demos.append(positions.T)
-            dt.append(data['delta_t'])
-            primitive_id.append(i)
-
-    return demos, primitive_id, dt
-
 
 def load_LASA_S2(dataset_path, primitives_names):
     """
@@ -266,7 +234,7 @@ def load_LASA_S2(dataset_path, primitives_names):
 
 def load_hammer(dataset_path, primitives_names):
     """
-    Loads demos for poultry use case
+    Loads demos for hammer use case
     """
     demos, primitive_id, dt = [], [], []
     for i in range(len(primitives_names)):
